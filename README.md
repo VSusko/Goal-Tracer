@@ -7,4 +7,4 @@ O sistema desenvolvido é um portal de atividades. Cada usuário pode cadastrar,
 Cristiano Augusto Dias Mafuz
 Victor Emmanuel Susko Guimarães
 
-## Quadro Kanban: [link]
+## Quadro Kanban: https://github.com/users/VSusko/projects/1/views/1
