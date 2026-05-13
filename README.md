@@ -14,6 +14,7 @@ O sistema desenvolvido é um portal de atividades. Cada usuário pode cadastrar,
 
 ## Integrantes:
 Cristiano Augusto Dias Mafuz
+
 Victor Emmanuel Susko Guimarães
 
 ## Tecnologias:
