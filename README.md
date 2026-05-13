@@ -17,8 +17,8 @@ Cristiano Augusto Dias Mafuz
 Victor Emmanuel Susko Guimarães
 
 ## Tecnologias:
-Frontend: Tailwind CSS
-Backend: Django
+    Frontend: Tailwind CSS
+    Backend: Django
 
 ## Quadro Kanban: 
 https://github.com/users/VSusko/projects/1/views/1
