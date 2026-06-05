@@ -13,3 +13,12 @@ create_superuser:
 # Regra para limpar os arquivos do banco de dados
 clean:
 	rm -rf db.sqlite3
+
+makemigrations:
+	docker compose exec web python manage.py makemigrations
+
+migrate:
+	docker compose exec web python manage.py migrate
+
+manager:
+	docker compose exec web python manage.py shell

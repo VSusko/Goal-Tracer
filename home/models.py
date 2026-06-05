@@ -16,7 +16,7 @@ class Mensagem(models.Model):
 class Atividade(models.Model):
     nome = models.CharField(max_length=200)
     dia_semana = models.CharField(max_length=20)
-    # horas = models.
+    duracao_minutos = models.PositiveIntegerField()
 
     def __str__(self):
         return self.nome
