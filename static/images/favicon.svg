@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="mainArrowGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0d4f8b" />
+      <stop offset="50%" stop-color="#008a73" />
+      <stop offset="100%" stop-color="#23b381" />
+    </linearGradient>
+
+    <linearGradient id="rightLegGrad" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#008a73" />
+      <stop offset="100%" stop-color="#23b381" />
+    </linearGradient>
+  </defs>
+
+  <g id="GoalTracerFavicon">
+    <path d="M 370,480 L 370,255 L 405,215 L 405,480 Z" fill="url(#rightLegGrad)" />
+    
+    <path d="M 195,355 C 240,430 295,490 380,430 C 400,415 412,395 412,395 L 380,365 C 380,365 370,380 360,388 C 310,425 270,380 235,325 Z" fill="#0d4f8b" />
+
+    <path d="M 20,480 L 155,275 C 190,225 240,265 265,305 L 180,415 C 160,390 145,375 135,375 C 115,375 90,410 70,440 L 40,480 Z 
+             M 265,305 C 290,345 330,300 375,230 L 435,140 L 375,120 L 475,75 L 450,185 L 415,140 L 355,230 C 310,300 280,320 265,305 Z" 
+          fill="url(#mainArrowGrad)" />
+
+    <g id="CompassStar" transform="translate(450, 75)">
+      <polygon points="0,-45 8,-12 35,-35 12,-8 45,0 12,8 35,35 8,12 0,45 -8,12 -35,35 -12,8 -45,0 -12,-8 -35,-35 -8,-12" fill="#f19e22" />
+      <circle cx="0" cy="0" r="14" fill="#ffffff" />
+      <circle cx="0" cy="0" r="10" fill="#f19e22" />
+      <polygon points="0,-7 4,5 0,2 -4,5" fill="#ffffff" transform="rotate(45)" />
+    </g>
+  </g>
+</svg>
