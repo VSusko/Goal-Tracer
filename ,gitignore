@@ -2,14 +2,12 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
 .venv/
 venv/
+
 db.sqlite3
 *.log
 .DS_Store
 
-./core/__pycache__/
-
-
-./home/__pycache__/
-./home/migrations/
+home/migrations/
