@@ -12,3 +12,11 @@ class Mensagem(models.Model):
 
     def __str__(self):
         return self.titulo
+    
+class Atividade(models.Model):
+    nome = models.CharField(max_length=200)
+    dia_semana = models.CharField(max_length=20)
+    # horas = models.
+
+    def __str__(self):
+        return self.nome

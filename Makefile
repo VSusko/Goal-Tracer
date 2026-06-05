@@ -3,6 +3,9 @@
 run:  
 	docker compose up --build -d
 
+restart:
+	docker compose restart
+
 # Regra para criar um superusuário
 create_superuser:
 	docker compose exec web python manage.py createsuperuser
