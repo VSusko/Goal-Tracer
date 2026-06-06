@@ -34,7 +34,6 @@
 
 	<!-- Div para os conteudos do painel principal e os dias da semana -->
 	<div>
-
 		<!-- Div do painel de cima: planejamento semanal e botao de nova atividade -->
 		<div class="grid grid-cols-2 gap-4 m-6">
 			<!-- Div do planejamento semanal -->
@@ -45,10 +44,39 @@
 
 			<!-- Div do botao de nova atividade -->
 			<div class="flex justify-end pr-10 py-1">
-				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5" id="NovaAtividade">+ Nova Atividade</button>
+				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5 hover:scale-110 duration-200 ease-in-out" id="botao_nova_atividade">+ Nova Atividade</button>
 			</div>
 		</div>
 
+		<!-- Nova atividade (escondida ate clickar no botao) -->
+		<div class="p-5 pl-32 pr-32 hidden" id="caixa_nova_atividade">
+			<!-- Div para caixa -->
+			<div class="bg-gray-50 border-blue-300 border-2 rounded-lg p-5 mb-2 shadow-xl">
+				<p class="text-lg mb-3"> Adicionar Atividade </p>
+				<div class="flex gap-5">
+					<div class="flex justify-between gap-6">
+						<!-- Caixa para o usuario digitar o nome da atividade -->
+						<input type="text" id="caixa_nome" name="nome" placeholder="Nome da atividade" class="border-2 rounded-lg bg-gray-50 p-3 w-96 placeholder:text-gray-500">
+						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
+						<select id="caixa_dia_semana" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-96">
+							<option value="Segunda">Segunda</option>
+							<option value="Terça">Terça</option>
+							<option value="Quarta">Quarta</option>
+							<option value="Quinta">Quinta</option>
+							<option value="Sexta">Sexta</option>
+							<option value="Sábado">Sábado</option>
+							<option value="Domingo">Domingo</option>
+						</select>
+						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
+						<input type="number" id="caixa_teste" placeholder="Horas trabalhadas" min="0" max="1000" step="0.5" class="border-2 rounded-lg bg-gray-50 p-3 w-48">
+					</div>
+					<div class="flex ml-8 gap-3">
+						<button class="bg-blue-600 text-white rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out" id="botao_adicionar">Adicionar atividade</button>
+						<button class="bg-gray-300 text-black rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out" id="botao_adicionar_cancelar">Cancelar</button>
+					</div>
+				</div>	
+			</div>
+		</div>
 
 		<!-- Div para os dias da semana -->
 		<div class="grid grid-cols-1 gap-4 pl-10 pr-16 py-5">
