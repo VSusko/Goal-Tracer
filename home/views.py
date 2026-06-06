@@ -1,8 +1,23 @@
 from django.shortcuts import render
+from django.http import JsonResponse
 from .models import Atividade
-
+import json
 
 def index(request):
+    # Verifica se o método da requisição é POST, indicando que uma atividade foi enviada
+    if request.method == "POST":
+        data = json.loads(request.body)
+        
+        # Obtém os dados da atividade
+        Atividade.objects.create(
+            nome=data["nome_atividade"],
+            dia_semana=data["dia_semana"],
+            duracao_minutos=data["duracao_minutos"]
+        )
+
+        return JsonResponse({"status": "ok"})
+    
+    
     dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
     # Obtendo todas as atividades do banco de dados
