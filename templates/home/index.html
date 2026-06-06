@@ -12,6 +12,7 @@
 	<link rel="icon" type="image/png" href="{% static 'images/favicon.svg' %}" class="rounded-lg">
 </head>
 
+
 <body>
 	<!-- Agrupamento dos links da pagina  -->
 	<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
@@ -44,7 +45,7 @@
 
 			<!-- Div do botao de nova atividade -->
 			<div class="flex justify-end pr-10 py-1">
-				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5">+ Nova Atividade</button>
+				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5" id="NovaAtividade">+ Nova Atividade</button>
 			</div>
 		</div>
 
@@ -52,7 +53,7 @@
 		<!-- Div para os dias da semana -->
 		<div class="grid grid-cols-1 gap-4 pl-10 pr-16 py-5">
 			<!-- Para cada dia da semana... -->
-			{% for dia in dias_semana %}
+			{% for dia, atividades in atividades_por_dia %}
 				<!-- Div para o dia atual -->
 				<div>
 					<!-- Header -->
@@ -65,20 +66,20 @@
 					<div class="p-5 rounded-b-lg border-2 shadow-lg">
 						<!-- Listando atividades -->
 						{% for atividade in atividades %}
-							{% if atividade.dia_semana == dia %}
-								<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2">
-									<p>{{ atividade.nome }}</p>
-									<!-- Progresso feito -->
-									<div class="flex justify-end items-center gap-1 ml-auto">
-										<div class="ml-auto border-2 rounded-lg bg-gray-50 p-2">
-											<p>0h</p>
-										</div>
-										<p class="text-gray-500">/5h</p>
-										<!-- Adicionar barra de progresso... -->
-
-									</div>
+							<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2">
+								<p>{{ atividade.nome }}</p>
+								<!-- Progresso feito -->
+								<div class="flex justify-end items-center gap-1 ml-auto">
+									<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
+									{% load l10n %}
+									<!-- Retira a localizacao para conseguir formatar o valor -->
+									{% localize off %}
+									<input type="number" id="{{ atividade.id }}" value="{{ atividade.duracao_horas }}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+									{% endlocalize %}
+									<p class="text-gray-500">/5h</p>
+									<!-- Adicionar barra de progresso... -->
 								</div>
-							{% endif %}
+							</div>
 							{% empty %}
 								<p class="text-gray-500">Nenhuma atividade planejada.</p>
 						{% endfor %}
@@ -88,7 +89,7 @@
 		</div>
 
 	</div>
-
+	<script src="{% static 'home/script.js' %}"></script>
 </body>
 
 </html>
