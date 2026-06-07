@@ -36,6 +36,7 @@ botaoAdicionar.addEventListener("click", () => {
     });
 });
 
+// Função para obter o token CSRF do cookie
 const csrftoken = getCookie("csrftoken");
 function getCookie(name) {
     let cookieValue = null;
