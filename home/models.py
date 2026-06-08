@@ -14,6 +14,7 @@ class Mensagem(models.Model):
         return self.titulo
     
 class Atividade(models.Model):
+    id = models.AutoField(primary_key=True)
     nome = models.CharField(max_length=200)
     dia_semana = models.CharField(max_length=20)
     duracao_minutos = models.PositiveIntegerField()

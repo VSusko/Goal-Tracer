@@ -1,41 +1,3 @@
-const botaoNovaAtividade = document.getElementById("botao_nova_atividade");
-const caixa_nova_atividade = document.getElementById("caixa_nova_atividade");
-
-// Botao nova atividade
-botaoNovaAtividade.addEventListener("click", () => {
-    caixa_nova_atividade.classList.remove("hidden");
-});
-
-// Botao cancelar nova atividade
-const botaoCancelar = document.getElementById("botao_adicionar_cancelar");
-
-botaoCancelar.addEventListener("click", () => {
-    caixa_nova_atividade.classList.add("hidden");
-});
-
-// Botao adicionar atividade
-const botaoAdicionar = document.getElementById("botao_adicionar");
-
-botaoAdicionar.addEventListener("click", () => {
-    // Lógica para adicionar a atividade
-    const nome = document.getElementById("caixa_nome").value;
-    const dia = document.getElementById("caixa_dia_semana").value;
-    const duracao = document.getElementById("caixa_horas").value;
-
-    fetch("/", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
-        },
-        body: JSON.stringify({
-            nome_atividade: nome,
-            dia_semana: dia,
-            duracao_minutos: duracao
-        })
-    });
-});
-
 // Função para obter o token CSRF do cookie
 const csrftoken = getCookie("csrftoken");
 function getCookie(name) {
@@ -56,3 +18,107 @@ function getCookie(name) {
 
     return cookieValue;
 }
+
+const botaoNovaAtividade = document.getElementById("botao_nova_atividade");
+const caixa_nova_atividade = document.getElementById("caixa_nova_atividade");
+
+// Botao nova atividade
+botaoNovaAtividade.addEventListener("click", () => {
+    caixa_nova_atividade.classList.remove("hidden");
+});
+
+// Botao cancelar nova atividade
+const botaoCancelar = document.getElementById("botao_adicionar_cancelar");
+
+botaoCancelar.addEventListener("click", () => {
+    caixa_nova_atividade.classList.add("hidden");
+});
+
+// Botao adicionar atividade
+const botaoAdicionar = document.getElementById("botao_adicionar");
+
+botaoAdicionar.addEventListener("click", async() => {
+    // Lógica para adicionar a atividade
+    const nome = document.getElementById("caixa_nome").value;
+    const dia = document.getElementById("caixa_dia_semana").value;
+    const duracao = document.getElementById("caixa_horas").value;
+ 
+    const response = await fetch("/atividade/gerenciar/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({
+            nome_atividade: nome,
+            dia_semana: dia,
+            duracao_minutos: duracao
+        })
+    });
+
+    
+    if (response.status != 200){
+        alert("Erro ao adicionar atividade. Tente novamente.");
+        return;
+    }
+
+    const data = await response.json();
+    
+    // Resetando as entradas
+    document.getElementById("caixa_nome").value = "";
+    document.getElementById("caixa_dia_semana").value = "Segunda";
+    document.getElementById("caixa_horas").value = "0";
+
+
+    // Adicionando a nova atividade na interface
+    const container = document.getElementById("div_body_atividade");
+
+    const novaAtividade = document.createElement("div");
+    novaAtividade.innerHTML = `
+        <div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2">
+            <p>${nome}</p>
+            <!-- Progresso feito -->
+            <div class="flex justify-end items-center gap-1 ml-auto">
+                <input type="number" id="${data.id}" value="${duracao/60}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+                <p class="text-gray-500">/5h</p>
+                <div id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
+                    <input type="image" src="${TRASH_ICON}" alt="Lixeira" class="w-7 h-6"/>
+                </div>
+                <!-- Adicionar barra de progresso... -->
+            </div>
+        </div>
+    `;
+
+    container.appendChild(novaAtividade);   
+    
+});
+
+
+// Botao deletar atividade
+const botoesDeletar = document.querySelectorAll("[id^=botao_deletar_]");
+
+botoesDeletar.forEach(botao => {
+    botao.addEventListener("click", () => {
+
+        const atividadeId = botao.id.split("_").pop();
+
+        console.log("Deletar atividade com ID:", atividadeId);
+        
+        fetch("/atividade/gerenciar/", {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            body: JSON.stringify({
+                atividade_id: atividadeId
+            })
+        });
+
+        // Remover a atividade da interface
+        const atividadeDiv = document.getElementById(`div_atividade_${atividadeId}`);
+        if (atividadeDiv) {
+            atividadeDiv.remove();
+        }
+    });
+});
