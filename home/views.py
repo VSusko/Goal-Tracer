@@ -36,8 +36,9 @@ def gerenciar_atividade(request):
         
         try:
             atividade = Atividade.objects.get(id=atividade_id)
+            dia = atividade.dia_semana
             atividade.delete()
-            return JsonResponse({"status": "ok"}, status=200)
+            return JsonResponse({"dia": dia, "status": "ok"}, status=200)
         except Atividade.DoesNotExist:
             return JsonResponse({"erro": "Atividade não encontrada"}, status=404)
     

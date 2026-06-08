@@ -71,8 +71,13 @@ botaoAdicionar.addEventListener("click", async() => {
 
 
     // Adicionando a nova atividade na interface
-    const container = document.getElementById("div_body_atividade");
+    const container = document.getElementById("div_body_atividade_" + dia);
 
+    if (container.children[0] && container.children[0].tagName === "P") {
+        container.children[0].remove();
+    }
+
+    // Criando a nova div    
     const novaAtividade = document.createElement("div");
     novaAtividade.innerHTML = `
         <div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2">
@@ -98,13 +103,13 @@ botaoAdicionar.addEventListener("click", async() => {
 const botoesDeletar = document.querySelectorAll("[id^=botao_deletar_]");
 
 botoesDeletar.forEach(botao => {
-    botao.addEventListener("click", () => {
+    botao.addEventListener("click", async () => {
 
         const atividadeId = botao.id.split("_").pop();
 
         console.log("Deletar atividade com ID:", atividadeId);
         
-        fetch("/atividade/gerenciar/", {
+        const response = await fetch("/atividade/gerenciar/", {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
@@ -115,10 +120,25 @@ botoesDeletar.forEach(botao => {
             })
         });
 
+        if (response.status != 200){
+            alert("Erro ao remover atividade. Tente novamente.");
+            return;
+        }
+
+        const data = await response.json();
+
         // Remover a atividade da interface
         const atividadeDiv = document.getElementById(`div_atividade_${atividadeId}`);
         if (atividadeDiv) {
             atividadeDiv.remove();
+        }
+
+        // Colocar mensagem de vazio
+        const container = document.getElementById("div_body_atividade_" + data.dia);
+        if (container.children.length === 0) {
+            const mensagem = document.createElement("p");
+            mensagem.innerHTML = `<p class="text-gray-500">Nenhuma atividade planejada.</p>`;
+            container.appendChild(mensagem);
         }
     });
 });
