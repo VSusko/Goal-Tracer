@@ -9,4 +9,5 @@ urlpatterns = [
     path('hoje/', views.hoje, name='hoje'),
     path('calendario/', views.calendario, name='calendario'),
     path("atividade/gerenciar/", views.gerenciar_atividade, name="gerenciar_atividade"),
+    path("atividade/soma_horas/", views.somar_horas, name="soma_horas"),
 ]

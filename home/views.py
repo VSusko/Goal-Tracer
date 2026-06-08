@@ -49,12 +49,29 @@ def gerenciar_atividade(request):
         atividade = Atividade.objects.create(
             nome=data["nome_atividade"],
             dia_semana=data["dia_semana"],
-            duracao_minutos=data["duracao_minutos"]
+            duracao_minutos=float(data["duracao_horas"]) * 60
         )
         return JsonResponse({"id": atividade.id, "status": "ok"})
 
     return JsonResponse({"erro": "Método não permitido"}, status=405)
 
+def somar_horas(request):
+    # Se for deletar atividades
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        dia = data.get("dia_semana")
+        soma = 0
+        
+        for atividade in Atividade.objects.all():
+            if(atividade.dia_semana == dia):
+                soma += atividade.duracao_minutos
+        
+        soma = soma/60    
+    
+        return JsonResponse({"soma": soma}, status=200)
+    
+    return JsonResponse({"erro": "Método não permitido"}, status=405)
 
 def metas(request):
     return render(request, "home/metas.html")

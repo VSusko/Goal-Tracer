@@ -52,7 +52,7 @@ botaoAdicionar.addEventListener("click", async() => {
         body: JSON.stringify({
             nome_atividade: nome,
             dia_semana: dia,
-            duracao_minutos: duracao
+            duracao_horas: duracao
         })
     });
 
@@ -84,7 +84,7 @@ botaoAdicionar.addEventListener("click", async() => {
             <p>${nome}</p>
             <!-- Progresso feito -->
             <div class="flex justify-end items-center gap-1 ml-auto">
-                <input type="number" id="${data.id}" value="${duracao/60}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+                <input type="number" id="${data.id}" value="${duracao}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
                 <p class="text-gray-500">/5h</p>
                 <div id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
                     <input type="image" src="${TRASH_ICON}" alt="Lixeira" class="w-7 h-6"/>
@@ -141,4 +141,28 @@ botoesDeletar.forEach(botao => {
             container.appendChild(mensagem);
         }
     });
+});
+
+
+
+// Definindo que chama a funcao quando carrega a pagina
+document.addEventListener("DOMContentLoaded", async () => {
+    const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+
+    for (const dia of dias) {
+        const response = await fetch("/atividade/soma_horas/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrftoken
+            },
+            body: JSON.stringify({
+                dia_semana: dia,
+            })
+        });
+
+        const data = await response.json();
+
+        document.getElementById("horas-trabalhadas").textContent = `Horas Trabalhadas: ${data.soma}`;
+    }
 });
