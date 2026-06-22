@@ -22,3 +22,6 @@ migrate:
 
 manager:
 	docker compose exec web python manage.py shell
+
+runserver:
+	python manage.py runserver
