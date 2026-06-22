@@ -25,7 +25,7 @@ def index(request):
         # Adiciona a lista gerada
         atividades_por_dia.append((dia, lista))
 
-    return render(request,"home/index.html",{"dias": dias, "atividades_por_dia": atividades_por_dia})
+    return render(request,"home/index.html",{"dias": dias, "atividades_por_dia": atividades_por_dia, "atividades":atividades})
 
 # View para criar/deletar atividade
 def gerenciar_atividade(request):
@@ -133,3 +133,10 @@ def hoje(request):
 
 def calendario(request):
     return render(request, "home/calendario.html")
+
+def atividades(request):
+    # Obtendo todas as atividades do banco de dados
+    atividades = Atividade.objects.all()
+    
+    
+    return render(request, "home/atividades.html", {"atividades":atividades})

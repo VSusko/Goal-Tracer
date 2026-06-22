@@ -24,6 +24,7 @@
 		</div>
 		<!-- Div dos links -->
 		<div class="flex items-center gap-6 text-gray-500 text-sm">
+			<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
 			<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
 			<a href="{% url 'index' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Semana</a>
 			<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
@@ -44,7 +45,7 @@
 
 			<!-- Div do botao de nova atividade -->
 			<div class="flex justify-end pr-10 py-1">
-				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5 hover:scale-110 duration-200 ease-in-out" id="botao_nova_atividade">+ Nova Atividade</button>
+				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5 hover:scale-110 duration-200 ease-in-out" id="botao_nova_atividade">+Atividade</button>
 			</div>
 		</div>
 
@@ -55,8 +56,13 @@
 				<p class="text-lg mb-3"> Adicionar Atividade </p>
 				<div class="flex gap-5">
 					<div class="flex justify-between gap-6">
-						<!-- Caixa para o usuario digitar o nome da atividade -->
-						<input type="text" id="caixa_nome" name="nome" placeholder="Nome da atividade" class="border-2 rounded-lg bg-gray-50 p-3 w-96 placeholder:text-gray-500">
+						<!-- Caixa para o usuario selecionar uma atividade -->
+						<select id="caixa_atividades" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-96">
+							{% for atividade in atividades %}
+							<option value="{{ atividade.nome }}"> {{ atividade.nome }} </option>
+							{% endfor %}
+						</select>
+						
 						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
 						<select id="caixa_dia_semana" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-96">
 							<option value="Segunda">Segunda</option>
