@@ -10,6 +10,7 @@
 		<!-- Carregando o favicon -->
 		{% load static %}
 		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+		<link rel="stylesheet" href="{% static 'home/css/style.css' %}">
 	</head>
 
 	<body>
@@ -31,7 +32,47 @@
 			</div>
 		</nav>
 
-		<p>...</p>
+
+		<!-- Div para os conteudos do painel principal e os dias da semana -->
+		<div>
+			<!-- Div do painel de cima: planejamento semanal e botao de nova atividade -->
+			<div class="grid grid-cols-2 gap-4 m-6">
+				<!-- Div do planejamento semanal -->
+				<div class="pl-5">
+					<h2 class="text-3xl font-bold">Relatórios</h2>
+					<p class="text-gray-400 text-sm mt-1">16 a 22 de Maio, 2026</p>
+				</div>
+			</div>
+
+			<!-- Div para as caixas de horas totais e eficiencia -->
+			<div class="flex m-10">
+				<!-- Caixa de horas totais -->
+				<div class="card-horas bg-gradient-to-r from-blue-500 to-blue-600">
+					<p class="text-xl">Horas totais semanais:</p>
+					<p class="text-5xl font-bold mt-5">{{ horas_semana|floatformat:1 }}h</p>
+					<p class="text-xl mt-5">De x trabalhadas</p>
+				</div>
+
+				<div class="card-horas bg-gradient-to-r from-green-500 to-green-600">
+					<p class="text-xl">Eficiência:</p>
+					<p class="text-5xl font-bold mt-5">x%</p>
+					<p class="text-xl mt-5">realizado vs planejado</p>
+				</div>
+
+				<div class="card-horas bg-gradient-to-r from-orange-500 to-orange-600">
+					<p class="text-xl">Dias ativos:</p>
+					<p class="text-5xl font-bold mt-5">{{ dias_ativos }}/7</p>
+					<p class="text-xl mt-5">dias da semana</p>
+				</div>
+			</div>
+			 
+			
+			
+		</div>
+		
+		
+		
+		
 	</body>
 
 </html>

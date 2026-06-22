@@ -3,8 +3,10 @@ from django.http import JsonResponse
 from .models import Atividade
 import json
 
+
+dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+
 def index(request):    
-    dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
     # Obtendo todas as atividades do banco de dados
     atividades = Atividade.objects.all()
@@ -56,7 +58,6 @@ def gerenciar_atividade(request):
     return JsonResponse({"erro": "Método não permitido"}, status=405)
 
 def somar_horas(request):
-    # Se for deletar atividades
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -77,7 +78,13 @@ def metas(request):
     return render(request, "home/metas.html")
 
 def relatorios(request):
-    return render(request, "home/relatorios.html")
+    atividades = Atividade.objects.all()
+    soma_total_minutos = sum(atv.duracao_minutos for atv in atividades)
+    horas_semana = soma_total_minutos / 60
+    
+    dias_ativos = Atividade.objects.values('dia_semana').distinct().count()
+        
+    return render(request,"home/relatorios.html", {"horas_semana": horas_semana, "dias_ativos": dias_ativos})
 
 def hoje(request):
     return render(request, "home/hoje.html")
