@@ -21,3 +21,12 @@ class Atividade(models.Model):
 
     def __str__(self):
         return self.nome
+
+
+class Meta(models.Model):
+    nome = models.CharField(max_length=100)
+    meta_horas = models.FloatField()
+    horas_feitas = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.nome

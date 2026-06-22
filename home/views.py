@@ -1,12 +1,10 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from .models import Atividade
+from .models import Atividade, Meta
 import json
 
-
-dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
-
 def index(request):    
+    dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
     # Obtendo todas as atividades do banco de dados
     atividades = Atividade.objects.all()
@@ -58,6 +56,7 @@ def gerenciar_atividade(request):
     return JsonResponse({"erro": "Método não permitido"}, status=405)
 
 def somar_horas(request):
+    # Se for deletar atividades
     if request.method == "POST":
         data = json.loads(request.body)
 
@@ -75,16 +74,52 @@ def somar_horas(request):
     return JsonResponse({"erro": "Método não permitido"}, status=405)
 
 def metas(request):
-    return render(request, "home/metas.html")
+    if request.method == "POST":
+        if "delete_id" in request.POST:
+            Meta.objects.filter(id=request.POST["delete_id"]).delete()
+            return redirect("metas")
+
+        if "add_hour_id" in request.POST:
+            meta = Meta.objects.get(id=request.POST["add_hour_id"])
+            meta.horas_feitas += 1
+            meta.save()
+            return redirect("metas")
+
+        Meta.objects.create(
+            nome=request.POST["nome"],
+            meta_horas=float(request.POST["meta_horas"]),
+            horas_feitas=float(request.POST["horas_feitas"])
+        )
+        return redirect("metas")
+
+    metas = list(Meta.objects.all())
+
+    for meta in metas:
+        meta.percentual = 0 if meta.meta_horas == 0 else min(
+            int((meta.horas_feitas / meta.meta_horas) * 100),
+            100
+        )
+
+    metas_atingidas = sum(1 for meta in metas if meta.horas_feitas >= meta.meta_horas)
+    progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
+
+    if progresso_medio >= 80:
+        status = "Excelente!"
+    elif progresso_medio >= 50:
+        status = "No caminho certo"
+    else:
+        status = "Precisa melhorar"
+
+    return render(request, "home/metas.html", {
+        "metas": metas,
+        "metas_atingidas": metas_atingidas,
+        "total_metas": len(metas),
+        "progresso_medio": progresso_medio,
+        "status": status,
+    })
 
 def relatorios(request):
-    atividades = Atividade.objects.all()
-    soma_total_minutos = sum(atv.duracao_minutos for atv in atividades)
-    horas_semana = soma_total_minutos / 60
-    
-    dias_ativos = Atividade.objects.values('dia_semana').distinct().count()
-        
-    return render(request,"home/relatorios.html", {"horas_semana": horas_semana, "dias_ativos": dias_ativos})
+    return render(request, "home/relatorios.html")
 
 def hoje(request):
     return render(request, "home/hoje.html")
