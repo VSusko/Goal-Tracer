@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
+from django.db.models import Sum
 from .models import Atividade, Meta, AtividadeDoDia
 import json
 
@@ -39,8 +40,6 @@ def gerenciar_atividade(request):
         # Operacao de criar atividade
         atividade = Atividade.objects.create(
             nome=data["nome_atividade"],
-            meta_horas=0,
-            total_horas=0
         )
         return JsonResponse({"id": atividade.id, "status": "ok"})
         
@@ -75,11 +74,18 @@ def metas(request):
         try:
             data = json.loads(request.body)
             
-            atividade = Atividade.objects.get(nome=data["id"])
+            if data["operacao"] == "adicionar":
+                atividade = Atividade.objects.get(nome=data["nome_atividade"])
+                Meta.objects.create(
+                    atividade = atividade,
+                    meta_horas= float(data["meta_horas"])
+                )
+                return JsonResponse({"status": "ok"}, status=200)
             
             if data["operacao"] == "reset":
-                atividade.meta_horas = 0
-                atividade.save()
+                meta = Meta.objects.get(nome=data["nome_atividade"])
+                meta.meta_horas = 0
+                meta.save()
                 return JsonResponse({"status": "ok"}, status=200)
                 
         except Exception as e:
@@ -88,16 +94,18 @@ def metas(request):
 
     
     atividades = Atividade.objects.all()
-    atividades_vinculadas = AtividadeDoDia.objects.all()
     metas = Meta.objects.all()
 
-    for atividade in atividades:
-        atividade.percentual = 0 if atividade.atividade_horas == 0 else min(
-            int((atividade.total_horas / atividade.meta_horas) * 100),
+    for meta in metas:
+        meta.horas_semana = AtividadeDoDia.objects.filter(atividade_id=meta.atividade_id).aggregate(total_horas=Sum('horas_feitas'))
+        meta.horas_semana = meta.horas_semana['total_horas'] or 0.0
+        meta.percentual = 0 if meta.meta_horas == 0 else min(
+            int((meta.horas_semana / meta.meta_horas) * 100),
             100
         )
+    
 
-    metas_atingidas = sum(1 for atividade in atividades if atividade.total_horas >= atividade.meta_horas)
+    metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
     progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
 
     if progresso_medio >= 80:
@@ -108,6 +116,7 @@ def metas(request):
         status = "Precisa melhorar"
 
     return render(request, "home/metas.html", {
+        "atividades" : atividades,
         "metas": metas,
         "metas_atingidas": metas_atingidas,
         "total_metas": len(metas),
