@@ -3,6 +3,7 @@
 run:  
 	docker compose up --build -d
 
+# Regra para reiniciar o projeto
 restart:
 	docker compose restart
 
@@ -14,14 +15,21 @@ create_superuser:
 clean:
 	rm -rf db.sqlite3
 
-makemigrations:
+# Regra para fazer o novo arquivo de migracoes
+migrations:
 	docker compose exec web python manage.py makemigrations
 
+# Regra para efetivar as novas mudancas no banco
 migrate:
 	docker compose exec web python manage.py migrate
 
+# Realiza as migracoes de uma vez
+updatedb: migrations migrate
+
+# Regra para entrar no shell do django
 manager:
 	docker compose exec web python manage.py shell
 
+# Regra para rodar o projeto sem docker
 runserver:
 	python manage.py runserver

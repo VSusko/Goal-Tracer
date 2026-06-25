@@ -1,46 +1,11 @@
-// Função para obter o token CSRF do cookie
-const csrftoken = getCookie("csrftoken");
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-
-            if (cookie.startsWith(name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-
-    return cookieValue;
-}
-
-// Botao nova atividade
-const botaoNovaAtividade = document.getElementById("botao_nova_atividade");
-const caixa_nova_atividade = document.getElementById("caixa_nova_atividade");
-botaoNovaAtividade.addEventListener("click", () => {
-    caixa_nova_atividade.classList.remove("hidden");
-});
-
-// Botao cancelar nova atividade
-const botaoCancelar = document.getElementById("botao_adicionar_cancelar");
-botaoCancelar.addEventListener("click", () => {
-    caixa_nova_atividade.classList.add("hidden");
-});
-
 // Botao adicionar atividade
 const botaoAdicionar = document.getElementById("botao_adicionar");
 botaoAdicionar.addEventListener("click", async() => {
     // Lógica para adicionar a atividade
     const nome_atividade = document.getElementById("caixa_atividades").value;
-    const dia_semana = document.getElementById("caixa_dia_semana").value;
-    const horas_feitas = document.getElementById("caixa_horas").value;
+    const meta_horas = document.getElementById("caixa_meta").value;
  
-    const response = await fetch("/atividade/associar/", {
+    const response = await fetch("/metas/", {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -48,8 +13,7 @@ botaoAdicionar.addEventListener("click", async() => {
         },
         body: JSON.stringify({
             nome_atividade: nome_atividade,
-            dia_semana: dia_semana,
-            horas_feitas: horas_feitas
+            meta_horas: meta_horas
         })
     });
 
@@ -61,9 +25,7 @@ botaoAdicionar.addEventListener("click", async() => {
     }
     
     // Resetando as entradas
-    document.getElementById("caixa_dia_semana").value = "Segunda";
-    document.getElementById("caixa_horas").value = "0";
-
+    document.getElementById("meta_horas").value = "0.5";
 
     // Adicionando a nova atividade na interface
     const container = document.getElementById("div_body_atividade_" + dia_semana);
@@ -94,35 +56,36 @@ botaoAdicionar.addEventListener("click", async() => {
 });
 
 
-// Botao deletar atividade
-const botoesDeletar = document.querySelectorAll("[id^=botao_deletar_]");
-botoesDeletar.forEach(botao => {
+// Botao resetar atividade
+const botoesResetar = document.querySelectorAll("[id^=botao_resetar_]");
+botoesResetar.forEach(botao => {
     botao.addEventListener("click", async () => {
 
         const atividade_id = botao.id.split("_").pop();
 
-        console.log("Deletar atividade com ID:", atividade_id);
+        console.log("Resetar atividade com ID:", atividade_id);
         
-        const response = await fetch("/atividade/gerenciar/", {
-            method: "DELETE",
+        const response = await fetch("/metas/", {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrftoken
             },
             body: JSON.stringify({
+                operacao: reset,
                 atividade_id: atividade_id
             })
         });
 
         if (response.status != 200){
-            alert("Erro ao remover atividade. Tente novamente.");
+            alert("Erro ao resetar atividade. Tente novamente.");
             return;
         }
 
         const data = await response.json();
 
         // Remover a atividade da interface
-        const atividadeDiv = document.getElementById(`div_atividade_${atividade_id}`);
+        const atividadeDiv = document.getElementById(`div_horas-meta_atividade_${atividade_id}`);
         if (atividadeDiv) {
             atividadeDiv.remove();
         }
@@ -136,27 +99,3 @@ botoesDeletar.forEach(botao => {
         }
     });
 });
-
-
-
-// Definindo que chama a funcao quando carrega a pagina
-// document.addEventListener("DOMContentLoaded", async () => {
-//     const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
-
-//     for (const dia of dias) {
-//         const response = await fetch("/atividade/soma_horas/", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json",
-//                 "X-CSRFToken": csrftoken
-//             },
-//             body: JSON.stringify({
-//                 dia_semana: dia,
-//             })
-//         });
-
-//         const data = await response.json();
-
-//         document.getElementById("horas-trabalhadas").textContent = `Horas Trabalhadas: ${data.soma}`;
-//     }
-// });  

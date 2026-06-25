@@ -9,6 +9,7 @@
 	<script src="https://cdn.tailwindcss.com"></script>
 	<!-- Carregando o favicon -->
 	{% load static %}
+	{% load l10n %}	
 	<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
 </head>
 
@@ -74,7 +75,7 @@
 							<option value="Domingo">Domingo</option>
 						</select>
 						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
-						<input type="number" id="caixa_horas" placeholder="Horas trabalhadas" min="0" max="1000" step="0.5" class="border-2 rounded-lg bg-gray-50 p-3 w-48">
+						<input type="number" id="caixa_horas" placeholder="Horas trabalhadas" min="0" max="24" step="0.5" class="border-2 rounded-lg bg-gray-50 p-3 w-48">
 					</div>
 					<div class="flex ml-8 gap-3">
 						<button class="bg-blue-600 text-white rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out" id="botao_adicionar">Adicionar atividade</button>
@@ -87,7 +88,7 @@
 		<!-- Div para os dias da semana -->
 		<div class="grid grid-cols-1 gap-4 pl-10 pr-16 py-5">
 			<!-- Para cada dia da semana... -->
-			{% for dia, atividades in atividades_por_dia %}
+			{% for dia in dias %}
 				<!-- Div para o dia atual -->
 				<div>
 					<!-- Header -->
@@ -100,28 +101,31 @@
 					<!-- Body -->
 					<div class="p-5 rounded-b-lg border-2 shadow-lg" id="div_body_atividade_{{ dia }}">
 						<!-- Listando atividades -->
-						{% for atividade in atividades %}
-							<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_{{ atividade.id }}">
-								<p>{{ atividade.nome }}</p>
-								<!-- Progresso feito -->
-								<div class="flex justify-end items-center gap-1 ml-auto">
-									<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
-									{% load l10n %}
-									<!-- Retira a localizacao para conseguir formatar o valor -->
-									{% localize off %}
-									<input type="number" id="{{ atividade.id }}" value="{{ atividade.duracao_horas }}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
-									{% endlocalize %}
-									<p class="text-gray-500">/5h</p>
-									<!-- Botao deletar  -->
-									<div id="botao_deletar_{{ atividade.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
-										<input type="image" src="{% static 'img/trash-icon.png' %}" alt="Lixeira" class="w-7 h-6"/>
+						{% if dia in dias_vazios %}
+							<p class="text-gray-500">Nenhuma atividade planejada.</p>
+						{% else %}
+							{% for atv in atividades_vinculadas %}
+								{% if atv.dia_semana == dia %}
+									<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_{{ atv.id }}">
+										<p>{{ atv.atividade.nome }}</p>
+										<!-- Progresso feito -->
+										<div class="flex justify-end items-center gap-1 ml-auto">
+											<!-- Retira a localizacao para conseguir formatar o valor -->
+											{% localize off %}
+											<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
+											<input type="number" id="{{ atv.id }}" value="{{ atv.horas_feitas }}" min="0" max="24" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+											{% endlocalize %}	
+											<p class="text-gray-500">/{{ atv.meta_horas }}h</p>
+											<!-- Botao deletar  -->
+											<div id="botao_deletar_{{ atv.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
+												<input type="image" src="{% static 'img/trash-icon.png' %}" alt="Lixeira" class="w-7 h-6"/>
+											</div>
+											<!-- Adicionar barra de progresso... -->
+										</div>
 									</div>
-									<!-- Adicionar barra de progresso... -->
-								</div>
-							</div>
-							{% empty %}
-								<p class="text-gray-500">Nenhuma atividade planejada.</p>
-						{% endfor %}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
 					</div>
 				</div>
 			{% endfor %}
