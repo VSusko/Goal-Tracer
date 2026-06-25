@@ -3,19 +3,34 @@ from django.http import JsonResponse
 from django.db.models import Sum
 from .models import Atividade, Meta, AtividadeDoDia
 import json
+from collections import defaultdict
 
 dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
 def index(request):
     # Obtendo todas as atividades do banco de dados
-    atividades            = Atividade.objects.all()
+    atividades            = Atividade.objects.prefetch_related('vinculos_dias').all()
     atividades_vinculadas = AtividadeDoDia.objects.all()
     
     dias_usados = AtividadeDoDia.objects.values_list("dia_semana",flat=True).distinct()
     dias_vazios = list(set(dias)  - set(dias_usados))
     
-    return render(request,"home/index.html",{"dias": dias, "atividades": atividades, 
-                                             "atividades_vinculadas": atividades_vinculadas, "dias_vazios":dias_vazios})
+    soma_por_dia = defaultdict(float)
+    for atividade in atividades_vinculadas:
+        soma_por_dia[atividade.dia_semana] += atividade.horas_feitas
+        
+    total_horas_por_dia = [soma_por_dia[dia] for dia in dias]
+    
+    dias_horas = zip(dias, total_horas_por_dia)
+    
+    context = {
+        "dias_horas": dias_horas,
+        "atividades": atividades,
+        "atividades_vinculadas": atividades_vinculadas, 
+        "dias_vazios": dias_vazios,
+    }
+    
+    return render(request,"home/index.html", context)
 
 # View para criar/deletar atividade
 def gerenciar_atividade(request):
@@ -104,7 +119,6 @@ def metas(request):
             100
         )
     
-
     metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
     progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
 
