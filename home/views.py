@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from django.db.models import Sum
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
 from .models import Atividade, Meta, AtividadeDoDia
 import json
 from collections import defaultdict
@@ -42,6 +43,7 @@ def gerenciar_atividade(request):
         
         try:
             atividade = AtividadeDoDia.objects.get(id=atividade_id)
+            print(atividade.atividade.nome)
             dia = atividade.dia_semana
             atividade.delete()
             return JsonResponse({"dia": dia, "status": "ok"}, status=200)
@@ -139,13 +141,22 @@ def metas(request):
     })
 
 def relatorios(request):
-    atividades = Atividade.objects.all()
-    soma_total_minutos = sum(atv.duracao_minutos for atv in atividades)
-    horas_semana = soma_total_minutos / 60
+    soma_horas_semana = AtividadeDoDia.objects.aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
     
-    dias_ativos = Atividade.objects.values('dia_semana').distinct().count()
+    dias_ativos = AtividadeDoDia.objects.values('dia_semana').distinct().count()
+    
+    soma_metas = Meta.objects.aggregate(total_horas=Coalesce(Sum('meta_horas'), Value(0.0)))
+    
+    percentual = (soma_horas_semana["total_horas"]/soma_metas["total_horas"]) * 100
+    
+    context =  {
+        "soma_horas_semana": soma_horas_semana["total_horas"], 
+        "soma_metas":soma_metas["total_horas"], 
+        "dias_ativos": dias_ativos,
+        "percentual": percentual
+    }
         
-    return render(request,"home/relatorios.html", {"horas_semana": horas_semana, "dias_ativos": dias_ativos})
+    return render(request,"home/relatorios.html", context)
 
 def hoje(request):
     return render(request, "home/hoje.html")

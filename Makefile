@@ -33,3 +33,6 @@ manager:
 # Regra para rodar o projeto sem docker
 runserver:
 	python manage.py runserver
+
+logs:
+	docker logs -f demo-django
