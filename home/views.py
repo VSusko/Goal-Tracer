@@ -1,31 +1,37 @@
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
-from .models import Atividade, Meta
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
+from .models import Atividade, Meta, AtividadeDoDia
 import json
+from collections import defaultdict
 
 dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
-def index(request):    
-
+def index(request):
     # Obtendo todas as atividades do banco de dados
-    atividades = Atividade.objects.all()
+    atividades            = Atividade.objects.prefetch_related('vinculos_dias').all()
+    atividades_vinculadas = AtividadeDoDia.objects.all()
     
-    # Convertendo a duração de minutos para horas e armazenando em um atributo temporário
-    for atividade in atividades:
-        atividade.duracao_horas = atividade.duracao_minutos / 60.0
-
-    # Criando uma lista para armazenar os dias da semana e suas atividades
-    atividades_por_dia = []
+    dias_usados = AtividadeDoDia.objects.values_list("dia_semana",flat=True).distinct()
+    dias_vazios = list(set(dias)  - set(dias_usados))
     
-    # Para cada dia, verifica se existe uma atividade
-    for dia in dias:
-        # Filtra as atividades e coloca na lista apenas as que correspondem ao dia atual
-        lista = [a for a in atividades if a.dia_semana == dia]
+    soma_por_dia = defaultdict(float)
+    for atividade in atividades_vinculadas:
+        soma_por_dia[atividade.dia_semana] += atividade.horas_feitas
         
-        # Adiciona a lista gerada
-        atividades_por_dia.append((dia, lista))
-
-    return render(request,"home/index.html",{"dias": dias, "atividades_por_dia": atividades_por_dia})
+    total_horas_por_dia = [soma_por_dia[dia] for dia in dias]
+    
+    dias_horas = zip(dias, total_horas_por_dia)
+    
+    context = {
+        "dias_horas": dias_horas,
+        "atividades": atividades,
+        "atividades_vinculadas": atividades_vinculadas, 
+        "dias_vazios": dias_vazios,
+    }
+    
+    return render(request,"home/index.html", context)
 
 # View para criar/deletar atividade
 def gerenciar_atividade(request):
@@ -36,7 +42,8 @@ def gerenciar_atividade(request):
         atividade_id = data.get("atividade_id")
         
         try:
-            atividade = Atividade.objects.get(id=atividade_id)
+            atividade = AtividadeDoDia.objects.get(id=atividade_id)
+            print(atividade.atividade.nome)
             dia = atividade.dia_semana
             atividade.delete()
             return JsonResponse({"dia": dia, "status": "ok"}, status=200)
@@ -46,62 +53,75 @@ def gerenciar_atividade(request):
     # Se for adicionar atividades
     if request.method == "POST":
         data = json.loads(request.body)
-
+        
+        # Operacao de criar atividade
         atividade = Atividade.objects.create(
             nome=data["nome_atividade"],
-            dia_semana=data["dia_semana"],
-            duracao_minutos=float(data["duracao_horas"]) * 60
         )
         return JsonResponse({"id": atividade.id, "status": "ok"})
+        
+    return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 
-    return JsonResponse({"erro": "Método não permitido"}, status=405)
 
-def somar_horas(request):
-    # Se for deletar atividades
+def associar_atividade(request):
+    # Se for adicionar atividades
     if request.method == "POST":
-        data = json.loads(request.body)
+        try:
+            data = json.loads(request.body)
+            
+            print(data["nome_atividade"])
+            atividade = Atividade.objects.get(nome=data["nome_atividade"])
+            
+            # Operacao de associar atividade
+            novo_vinculo = AtividadeDoDia.objects.create(
+                dia_semana=data["dia_semana"],
+                horas_feitas= float (data["horas_feitas"]),
+                atividade=atividade
+            )
+            return JsonResponse({"status": "ok", "id": novo_vinculo.id})
+        except Exception as e:
+            print(f'erro? {e}')
+            return JsonResponse({"erro": str(e)}, status=400)
+        
+    return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 
-        dia = data.get("dia_semana")
-        soma = 0
-        
-        for atividade in Atividade.objects.all():
-            if(atividade.dia_semana == dia):
-                soma += atividade.duracao_minutos
-        
-        soma = soma/60    
-    
-        return JsonResponse({"soma": soma}, status=200)
-    
-    return JsonResponse({"erro": "Método não permitido"}, status=405)
 
 def metas(request):
     if request.method == "POST":
-        if "delete_id" in request.POST:
-            Meta.objects.filter(id=request.POST["delete_id"]).delete()
-            return redirect("metas")
+        try:
+            data = json.loads(request.body)
+            
+            if data["operacao"] == "adicionar":
+                atividade = Atividade.objects.get(nome=data["nome_atividade"])
+                Meta.objects.create(
+                    atividade = atividade,
+                    meta_horas= float(data["meta_horas"])
+                )
+                return JsonResponse({"status": "ok"}, status=200)
+            
+            if data["operacao"] == "reset":
+                meta = Meta.objects.get(nome=data["nome_atividade"])
+                meta.meta_horas = 0
+                meta.save()
+                return JsonResponse({"status": "ok"}, status=200)
+                
+        except Exception as e:
+            print(f'erro? {e}')
+            return JsonResponse({"erro": str(e)}, status=400)
 
-        if "add_hour_id" in request.POST:
-            meta = Meta.objects.get(id=request.POST["add_hour_id"])
-            meta.horas_feitas += 1
-            meta.save()
-            return redirect("metas")
-
-        Meta.objects.create(
-            nome=request.POST["nome"],
-            meta_horas=float(request.POST["meta_horas"]),
-            horas_feitas=float(request.POST["horas_feitas"])
-        )
-        return redirect("metas")
-
-    metas = list(Meta.objects.all())
+    
+    atividades = Atividade.objects.all()
+    metas = Meta.objects.all()
 
     for meta in metas:
+        meta.horas_semana = AtividadeDoDia.objects.filter(atividade_id=meta.atividade_id).aggregate(total_horas=Sum('horas_feitas'))
+        meta.horas_semana = meta.horas_semana['total_horas'] or 0.0
         meta.percentual = 0 if meta.meta_horas == 0 else min(
-            int((meta.horas_feitas / meta.meta_horas) * 100),
+            int((meta.horas_semana / meta.meta_horas) * 100),
             100
         )
-
-    metas_atingidas = sum(1 for meta in metas if meta.horas_feitas >= meta.meta_horas)
+    
+    metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
     progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
 
     if progresso_medio >= 80:
@@ -112,6 +132,7 @@ def metas(request):
         status = "Precisa melhorar"
 
     return render(request, "home/metas.html", {
+        "atividades" : atividades,
         "metas": metas,
         "metas_atingidas": metas_atingidas,
         "total_metas": len(metas),
@@ -120,16 +141,32 @@ def metas(request):
     })
 
 def relatorios(request):
-    atividades = Atividade.objects.all()
-    soma_total_minutos = sum(atv.duracao_minutos for atv in atividades)
-    horas_semana = soma_total_minutos / 60
+    soma_horas_semana = AtividadeDoDia.objects.aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
     
-    dias_ativos = Atividade.objects.values('dia_semana').distinct().count()
+    dias_ativos = AtividadeDoDia.objects.values('dia_semana').distinct().count()
+    
+    soma_metas = Meta.objects.aggregate(total_horas=Coalesce(Sum('meta_horas'), Value(0.0)))
+    
+    percentual = (soma_horas_semana["total_horas"]/soma_metas["total_horas"]) * 100
+    
+    context =  {
+        "soma_horas_semana": soma_horas_semana["total_horas"], 
+        "soma_metas":soma_metas["total_horas"], 
+        "dias_ativos": dias_ativos,
+        "percentual": percentual
+    }
         
-    return render(request,"home/relatorios.html", {"horas_semana": horas_semana, "dias_ativos": dias_ativos})
+    return render(request,"home/relatorios.html", context)
 
 def hoje(request):
     return render(request, "home/hoje.html")
 
 def calendario(request):
     return render(request, "home/calendario.html")
+
+def atividades(request):
+    # Obtendo todas as atividades do banco de dados
+    atividades = Atividade.objects.all()
+    
+    
+    return render(request, "home/atividades.html", {"atividades":atividades})

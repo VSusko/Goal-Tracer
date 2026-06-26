@@ -9,6 +9,7 @@
 	<script src="https://cdn.tailwindcss.com"></script>
 	<!-- Carregando o favicon -->
 	{% load static %}
+	{% load l10n %}	
 	<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
 </head>
 
@@ -24,6 +25,7 @@
 		</div>
 		<!-- Div dos links -->
 		<div class="flex items-center gap-6 text-gray-500 text-sm">
+			<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
 			<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
 			<a href="{% url 'index' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Semana</a>
 			<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
@@ -44,7 +46,7 @@
 
 			<!-- Div do botao de nova atividade -->
 			<div class="flex justify-end pr-10 py-1">
-				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5 hover:scale-110 duration-200 ease-in-out" id="botao_nova_atividade">+ Nova Atividade</button>
+				<button class="bg-blue-600 text-white rounded-xl px-5 py-1.5 hover:scale-110 duration-200 ease-in-out" id="botao_nova_atividade">+Atividade</button>
 			</div>
 		</div>
 
@@ -55,8 +57,13 @@
 				<p class="text-lg mb-3"> Adicionar Atividade </p>
 				<div class="flex gap-5">
 					<div class="flex justify-between gap-6">
-						<!-- Caixa para o usuario digitar o nome da atividade -->
-						<input type="text" id="caixa_nome" name="nome" placeholder="Nome da atividade" class="border-2 rounded-lg bg-gray-50 p-3 w-96 placeholder:text-gray-500">
+						<!-- Caixa para o usuario selecionar uma atividade -->
+						<select id="caixa_atividades" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-96">
+							{% for atividade in atividades %}
+							<option value="{{ atividade.nome }}"> {{ atividade.nome }} </option>
+							{% endfor %}
+						</select>
+						
 						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
 						<select id="caixa_dia_semana" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-96">
 							<option value="Segunda">Segunda</option>
@@ -68,7 +75,7 @@
 							<option value="Domingo">Domingo</option>
 						</select>
 						<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
-						<input type="number" id="caixa_horas" placeholder="Horas trabalhadas" min="0" max="1000" step="0.5" class="border-2 rounded-lg bg-gray-50 p-3 w-48">
+						<input type="number" id="caixa_horas" placeholder="Horas trabalhadas" min="0" max="24" step="0.5" class="border-2 rounded-lg bg-gray-50 p-3 w-48">
 					</div>
 					<div class="flex ml-8 gap-3">
 						<button class="bg-blue-600 text-white rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out" id="botao_adicionar">Adicionar atividade</button>
@@ -81,41 +88,47 @@
 		<!-- Div para os dias da semana -->
 		<div class="grid grid-cols-1 gap-4 pl-10 pr-16 py-5">
 			<!-- Para cada dia da semana... -->
-			{% for dia, atividades in atividades_por_dia %}
+			{% for dia, total_horas in dias_horas %}
 				<!-- Div para o dia atual -->
 				<div>
 					<!-- Header -->
 					<div class="flex bg-gradient-to-r from-gray-100 to-blue-100 text-black rounded-t-lg pl-5 pr-4 py-4">
 						<p class="text-lg">{{ dia }}</p>
-						<p class="text-gray-500 ml-auto" id="total_horas"></p>
-
+						<p class="text-gray-500 ml-auto" id="total_horas">Total: {{ total_horas }}h</p>
 					</div>
 
 					<!-- Body -->
 					<div class="p-5 rounded-b-lg border-2 shadow-lg" id="div_body_atividade_{{ dia }}">
 						<!-- Listando atividades -->
-						{% for atividade in atividades %}
-							<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_{{ atividade.id }}">
-								<p>{{ atividade.nome }}</p>
-								<!-- Progresso feito -->
-								<div class="flex justify-end items-center gap-1 ml-auto">
-									<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
-									{% load l10n %}
-									<!-- Retira a localizacao para conseguir formatar o valor -->
-									{% localize off %}
-									<input type="number" id="{{ atividade.id }}" value="{{ atividade.duracao_horas }}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
-									{% endlocalize %}
-									<p class="text-gray-500">/5h</p>
-									<!-- Botao deletar  -->
-									<div id="botao_deletar_{{ atividade.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
-										<input type="image" src="{% static 'img/trash-icon.png' %}" alt="Lixeira" class="w-7 h-6"/>
+						{% if dia in dias_vazios %}
+							<p class="text-gray-500">Nenhuma atividade planejada.</p>
+						{% else %}
+							{% for atv in atividades_vinculadas %}
+								{% if atv.dia_semana == dia %}
+									<div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_{{ atv.id }}">
+										<p>{{ atv.atividade.nome }}</p>
+										<!-- Progresso feito -->
+										<div class="flex justify-end items-center gap-1 ml-auto">
+											<!-- Retira a localizacao para conseguir formatar o valor -->
+											{% localize off %}
+											<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
+											<input type="number" id="{{ atv.id }}" value="{{ atv.horas_feitas }}" min="0" max="24" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+											{% endlocalize %}	
+											{% for meta in atividade.vinculos_dias.all %}
+												<p class="text-gray-500">/{{ meta.meta_horas }}h</p>
+												{% empty %}
+												<p class="text-gray-500">/0h</p>
+											{% endfor %}
+											<!-- Botao deletar  -->
+											<div id="botao_deletar_{{ atv.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
+												<input type="image" src="{% static 'img/trash-icon.png' %}" alt="Lixeira" class="w-7 h-6"/>
+											</div>
+											<!-- Adicionar barra de progresso... -->
+										</div>
 									</div>
-									<!-- Adicionar barra de progresso... -->
-								</div>
-							</div>
-							{% empty %}
-								<p class="text-gray-500">Nenhuma atividade planejada.</p>
-						{% endfor %}
+								{% endif %}
+							{% endfor %}
+						{% endif %}
 					</div>
 				</div>
 			{% endfor %}

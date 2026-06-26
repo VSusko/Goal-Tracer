@@ -24,6 +24,7 @@
 			</div>
 			<!-- Div dos links -->
 			<div class="flex items-center gap-6 text-gray-500 text-sm">
+				<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
 				<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
 				<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
 				<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
@@ -49,13 +50,13 @@
 				<!-- Caixa de horas totais -->
 				<div class="card-horas bg-gradient-to-r from-blue-500 to-blue-600">
 					<p class="text-xl">Horas totais semanais:</p>
-					<p class="text-5xl font-bold mt-5">{{ horas_semana|floatformat:1 }}h</p>
-					<p class="text-xl mt-5">De x trabalhadas</p>
+					<p class="text-5xl font-bold mt-5">{{ soma_horas_semana|floatformat:1 }}h</p>
+					<p class="text-xl mt-5">De {{ soma_metas }}h planejadas</p>
 				</div>
 
 				<div class="card-horas bg-gradient-to-r from-green-500 to-green-600">
 					<p class="text-xl">Eficiência:</p>
-					<p class="text-5xl font-bold mt-5">x%</p>
+					<p class="text-5xl font-bold mt-5">{{ percentual }}%</p>
 					<p class="text-xl mt-5">realizado vs planejado</p>
 				</div>
 

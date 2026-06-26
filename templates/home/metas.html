@@ -12,8 +12,6 @@
 		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
 	</head>
 
-
-
 	<body>
 		<!-- Agrupamento dos links da pagina  -->
 		<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
@@ -25,6 +23,7 @@
 			</div>
 			<!-- Div dos links -->
 			<div class="flex items-center gap-6 text-gray-500 text-sm">
+				<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
 				<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
 				<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
 				<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
@@ -36,39 +35,15 @@
 		<div>
 			<div class="pl-10 py-6">
 				<h2 class="text-3xl font-bold">Metas da Semana</h2>
-				<form method="POST" class="flex gap-2 mt-4">
-					{% csrf_token %}
-
-					<input
-						type="text"
-						name="nome"
-						placeholder="Nome"
-						class="border p-2 rounded"
-					>
-
-					<input
-						type="number"
-						step="0.5"
-						name="meta_horas"
-						placeholder="Meta"
-						class="border p-2 rounded"
-					>
-
-					<input
-						type="number"
-						step="0.5"
-						name="horas_feitas"
-						placeholder="Feito"
-						class="border p-2 rounded"
-					>
-
-					<button
-						type="submit"
-						class="bg-blue-500 text-white px-4 rounded"
-					>
-						Adicionar
-					</button>
-				</form>
+				<div class="flex gap-2 mt-4">
+					<select id="caixa_atividades" name="dia_semana" class="border-2 rounded-lg bg-gray-50 p-3 w-[12vw]">
+					{% for atividade in atividades %}
+						<option value="{{ atividade.nome }}"> {{ atividade.nome }} </option>
+					{% endfor %}
+					</select>
+					<input id="caixa_meta" type="number" step="0.5" name="meta_horas" placeholder="Meta" class="border p-2 rounded">
+					<button id="botao_adicionar" class="bg-blue-500 text-white px-4 rounded">Adicionar</button>
+				</div>
 			</div>
 
 			<div class="grid grid-cols-3 gap-4 p-10">
@@ -91,38 +66,26 @@
 
 		<div class="p-10">
 			{% for meta in metas %}
-			<div class="bg-white rounded-xl border border-gray-100 p-6 mt-4">
-				<div class="flex justify-between mb-3">
-					<h4 class="font-semibold text-lg">{{ meta.nome }}</h4>
-					<div>{{ meta.horas_feitas }}/{{ meta.meta_horas }}h</div>
+				<div class="bg-white rounded-xl border border-gray-100 p-6 mt-4">
+					<div class="flex justify-between mb-3">
+						<h4 class="font-semibold text-lg">{{ meta.atividade.nome }}</h4>	
+						<div id="div_horas-meta_atividade_{{ meta.atividade.id }}">{{ meta.horas_semana }}/{{ meta.meta_horas }}h</div>
+					</div>
+
+					<div class="w-full bg-gray-200 h-2 rounded-full">
+						<div class="bg-blue-500 h-2 rounded-full w-[{{ meta.percentual }}%]"></div>
+					</div>
+
+					<p id="p_meta_percentual_atividade_{{ meta.atividade.id }}" class="mt-2 text-sm text-gray-500">{{ meta.percentual }}% concluído</p>
+
+					<div class="flex mt-4">
+						<button id="botao_resetar_{{ meta.atividade.nome }}" type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Reset</button>
+					</div>
 				</div>
-
-				<div class="w-full bg-gray-200 h-2 rounded-full">
-					<div class="bg-blue-500 h-2 rounded-full" style="width: {{ meta.percentual }}%"></div>
-				</div>
-
-				<p class="mt-2 text-sm text-gray-500">{{ meta.percentual }}% concluído</p>
-
-				<div class="flex gap-2 mt-4">
-					<form method="POST">
-						{% csrf_token %}
-						<input type="hidden" name="add_hour_id" value="{{ meta.id }}">
-						<button type="submit" class="px-3 py-1 bg-blue-500 text-white rounded">
-							+1h
-						</button>
-					</form>
-
-					<form method="POST">
-						{% csrf_token %}
-						<input type="hidden" name="delete_id" value="{{ meta.id }}">
-						<button type="submit" class="px-3 py-1 bg-red-500 text-white rounded">
-							Excluir
-						</button>
-					</form>
-				</div>
-			</div>
 			{% endfor %}
 		</div>
+
+	<script src="{% static 'home/js/metas.js' %}"></script>
 
 	</body>
 
