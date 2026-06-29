@@ -47,17 +47,17 @@
 			</div>
 
 			<div class="grid grid-cols-3 gap-4 p-10">
-				<div class="bg-purple-600 text-white rounded-xl p-5">
+				<div class="bg-gradient-to-r from-purple-600 to-purple-800 shadow-2xl text-white rounded-xl p-5">
 					<p class="text-lg">Metas atingidas</p>
 					<p class="text-2xl font-bold pt-4">{{ metas_atingidas }}/{{ total_metas }}</p>
 				</div>
 
-				<div class="bg-blue-600 text-white rounded-xl p-5">
+				<div class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-2xl text-white rounded-xl p-5">
 					<p class="text-lg">Progresso Médio</p>
 					<p class="text-2xl font-bold pt-4">{{ progresso_medio }}%</p>
 				</div>
 
-				<div class="bg-green-600 text-white rounded-xl p-5">
+				<div class="bg-gradient-to-r from-green-600 to-green-700 shadow-2xl text-white rounded-xl p-5">
 					<p class="text-lg">Status Geral</p>
 					<p class="text-2xl font-bold pt-4">{{ status }}</p>
 				</div>
@@ -66,7 +66,7 @@
 
 		<div class="p-10">
 			{% for meta in metas %}
-				<div class="bg-white rounded-xl border border-gray-100 p-6 mt-4">
+				<div class="bg-white rounded-xl border border-gray-100 p-6 mt-4 shadow-lg">
 					<div class="flex justify-between mb-3">
 						<h4 class="font-semibold text-lg">{{ meta.atividade.nome }}</h4>	
 						<div id="div_horas-meta_atividade_{{ meta.atividade.id }}">{{ meta.horas_semana }}/{{ meta.meta_horas }}h</div>

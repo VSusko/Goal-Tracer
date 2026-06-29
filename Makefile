@@ -34,5 +34,6 @@ manager:
 runserver:
 	python manage.py runserver
 
+# Regra para obter os logs
 logs:
 	docker logs -f demo-django
