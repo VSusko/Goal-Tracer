@@ -1,3 +1,17 @@
+// Funcao para formatar horas
+window.fmtHoras = (valor) =>
+    Number(valor).toLocaleString('pt-BR', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    }) + 'h';
+
+window.fmtNumero = (valor) =>
+    Number(valor).toLocaleString('pt-BR', {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+    });
+
+
 // Função para obter o token CSRF do cookie
 const csrftoken = getCookie("csrftoken");
 function getCookie(name) {
@@ -62,8 +76,7 @@ botaoAdicionar.addEventListener("click", async() => {
     }
     
     // Resetando as entradas
-    document.getElementById("caixa_dia_semana").value = "Segunda";
-    document.getElementById("caixa_horas").value = "0";
+    document.getElementById("caixa_horas").value = "";
 
     // Adicionando a nova atividade na interface
     const container_body = document.getElementById("div_body_atividade_" + dia_semana);
@@ -73,9 +86,8 @@ botaoAdicionar.addEventListener("click", async() => {
     }
 
     // Criando a nova div    
-    const novaAtividade = document.createElement("div");
-    novaAtividade.innerHTML = `
-        <div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_{{ atv.id }}">
+    const novaAtividade = document.createRange().createContextualFragment(`
+        <div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2" id="div_atividade_${data.id}">
             <p>${nome_atividade}</p>
             <!-- Progresso feito -->
             <div class="flex justify-end items-center gap-1 ml-auto">
@@ -87,100 +99,103 @@ botaoAdicionar.addEventListener("click", async() => {
                 </div>
             </div>
         </div>
-    `;
-
+    `);
+    // Adicionando a div no html
     container_body.appendChild(novaAtividade);   
     
+    // Incrementando horas trabalhadas
     const elem_total_horas = document.getElementById("total_horas_" + dia_semana);
-    elem_total_horas.innerText = `Total: ${data.soma_diaria}h`;
-});
+    elem_total_horas.innerText = "Total: " + fmtHoras(data.soma_diaria);
 
-
-// Botao deletar atividade
-const botoesDeletar = document.querySelectorAll("[id^=botao_deletar_]");
-botoesDeletar.forEach(botao => {
-    botao.addEventListener("click", async () => {
-
-        const atividade_id = botao.id.split("_").pop();
-
-        console.log("Deletar atividade com ID:", atividade_id);
-        
-        const response = await fetch("/atividade/associar/", {
-            method: "DELETE",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken
-            },
-            body: JSON.stringify({
-                atividade_id: atividade_id
-            })
-        });
-
-        if (response.status != 200){
-            alert("Erro ao remover atividade. Tente novamente.");
-            return;
-        }
-
-        const data = await response.json();
-
-        // Remover a atividade da interface
-        const atividadeDiv = document.getElementById(`div_atividade_${atividade_id}`);
-        if (atividadeDiv) {
-            atividadeDiv.remove();
-        }
-
-        // Colocar mensagem de vazio
-        const container = document.getElementById("div_body_atividade_" + data.dia);
-        if (container.children.length === 0) {
-            const mensagem = document.createElement("p");
-            mensagem.innerHTML = `<p class="text-gray-500">Nenhuma atividade planejada.</p>`;
-            container.appendChild(mensagem);
-        }
-
-        // Decrementando horas trabalhadas
-        const elem_total_horas = document.getElementById("total_horas_" + data.dia);
-        elem_total_horas.innerText = `Total: ${data.soma_diaria}h`;
-        
-
-        // Atualizando o percentual da meta...
+    // Atualizando o percentual da meta...
+    if(data.id_meta != "None")
+    {
         const percentual_antigo = document.getElementById("percentual_meta_" + data.id_meta); 
         // Cria a nova div (pode ser um elemento HTML criado via código)
         const percentual_novo = document.createElement("div");
-        percentual_novo.id = data.id_meta;
+        percentual_novo.id = "percentual_meta_" + data.id_meta;
         percentual_novo.className = `bg-green-500 h-2 rounded-full w-[${data.percentual}%]`; 
         percentual_antigo.replaceWith(percentual_novo);
-
+        
         // Atualizando as horas totais trabalhadas na meta
         const horas_antigas = document.getElementById("horas_meta_" + data.id_meta); 
         const horas_novas = document.createElement("span");
         horas_novas.id = "horas_meta_" + data.id_meta;
         horas_novas.className = `text-gray-500 ml-auto`;
-        horas_novas.textContent = data.horas_da_meta + "h";
+        horas_novas.textContent = fmtHoras(data.horas_da_meta);
         horas_antigas.replaceWith(horas_novas);
-        
-    });
+    }
 });
 
+// Botao deletar atividade
+document.addEventListener("click", async (event) => {
+    const botao = event.target.closest("[id^='botao_deletar_']");
+    
+    if (!botao) return; // clique não foi num botão deletar
+    
+    const vinculo_id = botao.id.split("_").pop();
+    console.log("Deletar atividade com ID:", vinculo_id);
 
+    const response = await fetch("/atividade/associar/", {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({
+            vinculo_id: vinculo_id
+        })
+    });
 
-// Definindo que chama a funcao quando carrega a pagina
-// document.addEventListener("DOMContentLoaded", async () => {
-//     const dias = ["Segunda","Terça","Quarta","Quinta","Sexta","Sábado","Domingo"];
+    if (response.status != 200){
+        alert("Erro ao remover atividade. Tente novamente.");
+        return;
+    }
 
-//     for (const dia of dias) {
-//         const response = await fetch("/atividade/soma_horas/", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json",
-//                 "X-CSRFToken": csrftoken
-//             },
-//             body: JSON.stringify({
-//                 dia_semana: dia,
-//             })
-//         });
+    const data = await response.json();
 
-//         const data = await response.json();
+    // Remover a atividade da interface
+    const atividadeDiv = document.getElementById(`div_atividade_${vinculo_id}`);
+    if (atividadeDiv) {
+        atividadeDiv.remove();
+    }
 
-//         document.getElementById("horas-trabalhadas").textContent = `Horas Trabalhadas: ${data.soma}`;
-//     }
-// });  
+    // Colocar mensagem de vazio
+    const container = document.getElementById("div_body_atividade_" + data.dia);
+    if (container.children.length === 0) {
+        const mensagem = document.createElement("p");
+        mensagem.innerHTML = `<p class="text-gray-500">Nenhuma atividade planejada.</p>`;
+        container.appendChild(mensagem);
+    }
+
+    // Decrementando horas trabalhadas
+    const elem_total_horas = document.getElementById("total_horas_" + data.dia);
+    elem_total_horas.innerText = "Total: " + fmtHoras(data.soma_diaria);
+    
+    console.log(data.dia)
+    console.log(data.id_meta)
+    console.log(data.soma_diaria)
+    console.log(data.horas_da_meta)
+    console.log(data.percentual)
+
+    // Atualizando o card da meta (apenas se ela existir)
+    if(data.id_meta != "None")
+    {
+        // Atualizando o percentual da meta...
+        const percentual_antigo = document.getElementById("percentual_meta_" + data.id_meta); 
+        // Cria a nova div (pode ser um elemento HTML criado via código)
+        const percentual_novo = document.createElement("div");
+        percentual_novo.id = "percentual_meta_" + data.id_meta;
+        percentual_novo.className = `bg-green-500 h-2 rounded-full w-[${data.percentual}%]`; 
+        percentual_antigo.replaceWith(percentual_novo);
+        
+        // Atualizando as horas totais trabalhadas na meta
+        const horas_antigas = document.getElementById("horas_meta_" + data.id_meta); 
+        const horas_novas = document.createElement("span");
+        horas_novas.id = "horas_meta_" + data.id_meta;
+        horas_novas.className = `text-gray-500 ml-auto`;
+        horas_novas.textContent = fmtHoras(data.horas_da_meta);
+        horas_antigas.replaceWith(horas_novas);
+    }
+    
+});

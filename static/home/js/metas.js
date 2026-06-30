@@ -49,7 +49,7 @@ botaoAdicionar.addEventListener("click", async() => {
     }
     
     // Resetando as entradas
-    document.getElementById("caixa_meta").value = "0.5";
+    document.getElementById("caixa_meta").value = "";
 
     // Adicionando a nova atividade na interface
     // const container = document.getElementById("div_body_atividade_" + dia_semana);
