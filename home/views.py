@@ -68,14 +68,25 @@ def gerenciar_atividade(request):
     # Se for adicionar atividades
     if request.method == "POST":
         data = json.loads(request.body)
-        
-        # Operacao de criar atividade
-        atividade = Atividade.objects.create(
-            nome=data["nome_atividade"],
-        )
-        return JsonResponse({"id": atividade.id, "status": "ok"})
+        try:
+            # Operacao de criar atividade
+            atividade = Atividade.objects.create(
+                nome=data["nome_atividade"],
+            )
+            return JsonResponse({"id": atividade.id, "status": "ok"})
+        except Exception as e:
+            print(f'erro? {e}')
+            return JsonResponse({"erro": str(e)}, status=400)
         
     return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
+
+# View para o gerenciamento de atividades cadastradas
+def atividades(request):
+    # Obtendo todas as atividades do banco de dados
+    atividades = Atividade.objects.all()
+    
+    # Retorna as atividades e a pagina html
+    return render(request, "home/atividades.html", {"atividades":atividades})
 
 # View para associar uma atividade a um dia da semana
 def associar_atividade(request):
@@ -197,6 +208,59 @@ def associar_atividade(request):
         
     return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 
+# Funcao auxiliar para obter as informacoes importantes da meta
+def gerar_dados_metas(nome_atividade=None, operacao=None):        
+    # Itera sobre as metas, calculando o total de horas trabalhadas em todas as atividades e obtendo o percentual com relacao a meta estabelecida
+    metas = Meta.objects.all()
+    for meta in metas:
+        meta.horas_semana = AtividadeDoDia.objects.filter(atividade_id=meta.atividade_id).aggregate(total_horas=Sum('horas_feitas'))
+        meta.horas_semana = meta.horas_semana['total_horas'] or 0.0
+        meta.percentual = 0 if meta.meta_horas == 0 else min(
+            int((meta.horas_semana / meta.meta_horas) * 100),
+            100
+        )
+        # Se foi passado o nome da atividade, procura a meta correspondente e salva em novameta
+        if nome_atividade == meta.atividade.nome:
+            novameta = meta
+    
+    # Calculo das metas atingidas para a semana
+    metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
+    # Calculo do progesso medio em percentual
+    progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
+
+    # Status do progresso
+    if progresso_medio >= 80:
+        status = "Excelente!"
+    elif progresso_medio >= 50:
+        status = "No caminho certo"
+    else:
+        status = "Precisa melhorar"
+
+    # Se nao foi passada uma atividade, retorna todos os dados
+    atividades_sem_meta = list(Atividade.objects.filter(vinculos_metas__isnull=True).values_list('nome', flat=True))
+    print(f'Atividades sem meta: {atividades_sem_meta}')
+
+    # Contexto da delecao -> o que carrega menos informacoes
+    context = {
+        "atividades" : atividades_sem_meta,
+        "metas_atingidas": metas_atingidas,
+        "total_metas": len(metas),
+        "progresso_medio": progresso_medio,
+        "status": status,
+    }
+
+    # Caso uma atividade tenha sido passada, adiciona tambem os dados especificos da meta nova
+    if operacao == "adicionar" and nome_atividade is not None:
+        context["horas_semana"] = novameta.horas_semana
+        context["percentual"] = novameta.percentual
+
+    # Caso nada tenha sido passado, é o retorno da view quando carrega a pagina, entao adiciona todas as metas
+    if operacao == None:
+        context["metas"] = metas
+        
+    return context
+
+
 # View para as metas
 def metas(request):
     # Se for criar uma meta nova
@@ -210,48 +274,23 @@ def metas(request):
                     atividade = atividade,
                     meta_horas= float(data["meta_horas"])
                 )
-                return JsonResponse({"status": "ok"}, status=200)
+                context = gerar_dados_metas(nome_atividade=atividade.nome, operacao="adicionar")
+                
+                return JsonResponse(context, status=200)
             
-            if data["operacao"] == "reset":
-                meta = Meta.objects.get(nome=data["nome_atividade"])
-                meta.meta_horas = 0
-                meta.save()
-                return JsonResponse({"status": "ok"}, status=200)
+            if data["operacao"] == "deletar":
+                meta = Meta.objects.get(atividade__nome=data["nome_atividade"])
+                meta.delete()
+                context = gerar_dados_metas(operacao="deletar")
+                return JsonResponse(context, status=200)
                 
         except Exception as e:
             print(f'erro? {e}')
             return JsonResponse({"erro": str(e)}, status=400)
 
+    context = gerar_dados_metas()
+    return render(request, "home/metas.html", context)
     
-    atividades = Atividade.objects.all()
-    metas = Meta.objects.all()
-
-    for meta in metas:
-        meta.horas_semana = AtividadeDoDia.objects.filter(atividade_id=meta.atividade_id).aggregate(total_horas=Sum('horas_feitas'))
-        meta.horas_semana = meta.horas_semana['total_horas'] or 0.0
-        meta.percentual = 0 if meta.meta_horas == 0 else min(
-            int((meta.horas_semana / meta.meta_horas) * 100),
-            100
-        )
-    
-    metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
-    progresso_medio = round(sum(meta.percentual for meta in metas) / len(metas)) if metas else 0
-
-    if progresso_medio >= 80:
-        status = "Excelente!"
-    elif progresso_medio >= 50:
-        status = "No caminho certo"
-    else:
-        status = "Precisa melhorar"
-
-    return render(request, "home/metas.html", {
-        "atividades" : atividades,
-        "metas": metas,
-        "metas_atingidas": metas_atingidas,
-        "total_metas": len(metas),
-        "progresso_medio": progresso_medio,
-        "status": status,
-    })
 
 # View para a exibicao dos relatorios
 def relatorios(request):
@@ -282,11 +321,3 @@ def hoje(request):
 # View para a pagina do dia de hoje
 def calendario(request):
     return render(request, "home/calendario.html")
-
-# View para o gerenciamento de atividades cadastradas
-def atividades(request):
-    # Obtendo todas as atividades do banco de dados
-    atividades = Atividade.objects.all()
-    
-    # Retorna as atividades e a pagina html
-    return render(request, "home/atividades.html", {"atividades":atividades})

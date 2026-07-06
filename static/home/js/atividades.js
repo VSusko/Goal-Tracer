@@ -39,15 +39,20 @@ botaoAdicionar.addEventListener("click", async() => {
         })
     });
 
-    // Caso de erro
-    if (response.status != 200){
-        alert("Erro ao adicionar atividade. Tente novamente.");
-        return;
-    }
-
     // Coletando a resposta do servidor
     const data = await response.json();
     
+    // Caso de erro
+    if (response.status != 200){
+        if(data["erro"].includes("UNIQUE constraint failed")){
+            alert("Erro: uma atividade já foi cadastrada com esse nome.");
+        }
+        else{
+            alert("Erro: " + data["erro"]);
+        }
+        return;
+    }
+
     // Resetando as entradas
     nomeInput.value = "";
 
@@ -75,8 +80,6 @@ botaoAdicionar.addEventListener("click", async() => {
 });
 
 
-
-
 // Botao deletar atividade
 document.addEventListener("click", async (event) => {
     const botao = event.target.closest("[id^='botao_deletar_']");
@@ -84,7 +87,12 @@ document.addEventListener("click", async (event) => {
     if (!botao) return; // clique não foi num botão deletar
 
     const atividade_id = botao.id.split("_").pop();
-
+    
+    const confirmar = confirm(`Tem certeza que deseja deletar essa atividade? Todas as metas associadas e atividades planejadas também serão removidas.`);
+    if (!confirmar) {
+        return; 
+    }
+    
     console.log("Deletar atividade com ID:", atividade_id);
     
     const response = await fetch("/atividade/gerenciar/", {

@@ -23,7 +23,14 @@ function getCookie(name) {
 const botaoAdicionar = document.getElementById("botao_adicionar");
 botaoAdicionar.addEventListener("click", async() => {
     // Lógica para adicionar a atividade
+    // Obtendo o nome
     const nome_atividade = document.getElementById("caixa_atividades").value;
+
+    if (!nome_atividade) {
+        alert("Todas as atividades possuem metas já definidas.");
+        return;
+    }
+
     const meta_horas = document.getElementById("caixa_meta").value;
 
     console.log("aaaaaaaaaa")
@@ -51,43 +58,73 @@ botaoAdicionar.addEventListener("click", async() => {
     // Resetando as entradas
     document.getElementById("caixa_meta").value = "";
 
-    // Adicionando a nova atividade na interface
-    // const container = document.getElementById("div_body_atividade_" + dia_semana);
+    // Atualizando o painel de metas atingidas
+    document.getElementById("metas_atingidas").textContent = data.metas_atingidas + "/" + data.total_metas;
+    document.getElementById("progresso_medio").textContent = data.progresso_medio + "%";
+    document.getElementById("status").textContent = data.status;
 
-    // if (container.children[0] && container.children[0].tagName === "P") {
-    //     container.children[0].remove();
-    // }
+    // Atualizando as metas disponiveis para escolha
+    const selectAtividades = document.getElementById("caixa_atividades");
+    // Limpa todas as opções antigas
+    selectAtividades.innerHTML = "";
+
+    // Se não sobrou nenhuma atividade sem meta, deixa o select vazio
+    if (data.atividades.length === 0) {
+        const optionVazia = document.createElement("option");
+        optionVazia.value = "";
+        optionVazia.textContent = "";
+        selectAtividades.appendChild(optionVazia);
+    } else {
+        // Preenche o select com as atividades que ainda não têm meta
+        data.atividades.forEach(nome => {
+            const option = document.createElement("option");
+            option.value = nome;
+            option.textContent = nome;
+            selectAtividades.appendChild(option);
+        });
+    }
+
+    // Adicionando a nova meta na interface
+    const container_body = document.getElementById("div_metas");
+
+    if (container_body.children[0] && container_body.children[0].tagName === "P") {
+        container_body.children[0].remove();
+    }
 
     // Criando a nova div    
-    // const novaAtividade = document.createElement("div");
-    // novaAtividade.innerHTML = `
-    //     <div class="flex items-center gap-3 bg-gray-50 border-gray-300 border-2 rounded-lg p-3 mb-2">
-    //         <p>${nome_atividade}</p>
-    //         <!-- Progresso feito -->
-    //         <div class="flex justify-end items-center gap-1 ml-auto">
-    //             <input type="number" id="${data.id}" value="${horas_feitas}" min="0" max="1000" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
-    //             <p class="text-gray-500">/5h</p>
-    //             <div id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-10">
-    //                 <input type="image" src="${TRASH_ICON}" alt="Lixeira" class="w-7 h-6"/>
-    //             </div>
-    //             <!-- Adicionar barra de progresso... -->
-    //         </div>
-    //     </div>
-    // `;
+    const novaMeta = document.createRange().createContextualFragment(`
+        <div id="div_meta_${nome_atividade}" class="bg-white rounded-xl border border-gray-100 p-6 mt-4 shadow-lg">
+            <div class="flex justify-between mb-3">
+                <h4 class="font-semibold text-lg">${nome_atividade}</h4>	
+                <div>${data.horas_semana}/${meta_horas}h</div>
+            </div>
 
-    // container.appendChild(novaAtividade);   
+            <div class="w-full bg-gray-200 h-2 rounded-full">
+                <div class="bg-blue-500 h-2 rounded-full w-[${data.percentual}%]"></div>
+            </div>
+
+            <p class="mt-2 text-sm text-gray-500">${data.percentual}% concluído</p>
+
+            <div class="flex mt-4">
+                <button id="botao_deletar_${nome_atividade}" type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
+            </div>
+        </div>
+    `);
+    // Adicionando a div no html
+    container_body.appendChild(novaMeta);     
     
 });
 
 
-// Botao resetar atividade
-const botoesResetar = document.querySelectorAll("[id^=botao_resetar_]");
-botoesResetar.forEach(botao => {
-    botao.addEventListener("click", async () => {
+// Botao de deletar a meta
+document.addEventListener("click", async (event) => {
+        const botao = event.target.closest("[id^='botao_deletar_']");
 
-        const atividade_id = botao.id.split("_").pop();
+        if (!botao) return; // clique não foi num botão deletar
 
-        console.log("Resetar atividade com ID:", atividade_id);
+        const nome_atividade = botao.id.split("_").pop();
+
+        console.log("Deletar a meta da atividade " + nome_atividade);
         
         const response = await fetch("/metas/", {
             method: "POST",
@@ -96,30 +133,55 @@ botoesResetar.forEach(botao => {
                 "X-CSRFToken": csrftoken
             },
             body: JSON.stringify({
-                operacao: "reset",
-                atividade_id: atividade_id
+                operacao: "deletar",
+                nome_atividade: nome_atividade
             })
         });
 
         if (response.status != 200){
-            alert("Erro ao resetar atividade. Tente novamente.");
+            alert("Erro: " + data["erro"]);
             return;
         }
 
         const data = await response.json();
 
+        // Atualizando o painel de metas atingidas
+        document.getElementById("metas_atingidas").textContent = data.metas_atingidas + "/" + data.total_metas;
+        document.getElementById("progresso_medio").textContent = data.progresso_medio + "%";
+        document.getElementById("status").textContent = data.status;
+
+        // Atualizando as metas disponiveis para escolha
+        const selectAtividades = document.getElementById("caixa_atividades");
+        // Limpa todas as opções antigas
+        selectAtividades.innerHTML = "";
+
+        // Se não sobrou nenhuma atividade sem meta, deixa o select vazio
+        if (data.atividades.length === 0) {
+            const optionVazia = document.createElement("option");
+            optionVazia.value = "";
+            optionVazia.textContent = "";
+            selectAtividades.appendChild(optionVazia);
+        } else {
+            // Preenche o select com as atividades que ainda não têm meta
+            data.atividades.forEach(nome => {
+                const option = document.createElement("option");
+                option.value = nome;
+                option.textContent = nome;
+                selectAtividades.appendChild(option);
+            });
+        }
+
         // Remover a atividade da interface
-        const atividadeDiv = document.getElementById(`div_horas-meta_atividade_${atividade_id}`);
+        const atividadeDiv = document.getElementById(`div_meta_${nome_atividade}`);
         if (atividadeDiv) {
             atividadeDiv.remove();
         }
 
         // Colocar mensagem de vazio
-        const container = document.getElementById("div_body_atividade_" + data.dia);
+        const container = document.getElementById("div_metas");
         if (container.children.length === 0) {
             const mensagem = document.createElement("p");
-            mensagem.innerHTML = `<p class="text-gray-500">Nenhuma atividade planejada.</p>`;
+            mensagem.innerHTML = `<p class="text-gray-500">Nenhuma meta planejada.</p>`;
             container.appendChild(mensagem);
         }
-    });
 });
