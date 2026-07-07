@@ -71,9 +71,15 @@ botaoAdicionar.addEventListener("click", async() => {
     const data = await response.json();
     
     if (response.status != 200){
-        alert("Erro " + data["erro"]);
+        if(data["erro"].includes("UNIQUE constraint failed")){
+            alert("Erro: a atividade " + nome_atividade + " já está registrada na " + dia_semana);
+        }
+        else{
+            alert("Erro: " + data["erro"]);
+        }
         return;
     }
+
     
     // Resetando as entradas
     document.getElementById("caixa_horas").value = "";
@@ -148,7 +154,7 @@ document.addEventListener("click", async (event) => {
     });
 
     if (response.status != 200){
-        alert("Erro ao remover atividade. Tente novamente.");
+        alert("Erro: " + data["erro"]);
         return;
     }
 
