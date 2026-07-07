@@ -46,6 +46,34 @@ botaoCancelar.addEventListener("click", () => {
     caixa_nova_atividade.classList.add("hidden");
 });
 
+
+// Funções utilitárias para atualizar os cards de meta e total de horas
+function atualizarCardMeta(id_meta, percentual, horas_da_meta) {
+    if (id_meta === "None") return;
+
+    // Atualiza barra de percentual
+    const percentual_antigo = document.getElementById("percentual_meta_" + id_meta);
+    const percentual_novo = document.createElement("div");
+    percentual_novo.id = "percentual_meta_" + id_meta;
+    percentual_novo.className = `bg-green-500 h-2 rounded-full w-[${percentual}%]`;
+    percentual_antigo.replaceWith(percentual_novo);
+
+    // Atualiza horas trabalhadas
+    const horas_antigas = document.getElementById("horas_meta_" + id_meta);
+    const horas_novas = document.createElement("span");
+    horas_novas.id = "horas_meta_" + id_meta;
+    horas_novas.className = "text-gray-500 ml-auto";
+    horas_novas.textContent = fmtHoras(horas_da_meta);
+    horas_antigas.replaceWith(horas_novas);
+}
+
+function atualizarTotalHoras(dia, soma_diaria) {
+    const elem = document.getElementById("total_horas_" + dia);
+    elem.innerText = "Total: " + fmtHoras(soma_diaria);
+}
+
+
+
 // Botao adicionar atividade
 const botaoAdicionar = document.getElementById("botao_adicionar");
 botaoAdicionar.addEventListener("click", async() => {
@@ -80,7 +108,6 @@ botaoAdicionar.addEventListener("click", async() => {
         return;
     }
 
-    
     // Resetando as entradas
     document.getElementById("caixa_horas").value = "";
 
@@ -109,28 +136,8 @@ botaoAdicionar.addEventListener("click", async() => {
     // Adicionando a div no html
     container_body.appendChild(novaAtividade);   
     
-    // Incrementando horas trabalhadas
-    const elem_total_horas = document.getElementById("total_horas_" + dia_semana);
-    elem_total_horas.innerText = "Total: " + fmtHoras(data.soma_diaria);
-
-    // Atualizando o percentual da meta...
-    if(data.id_meta != "None")
-    {
-        const percentual_antigo = document.getElementById("percentual_meta_" + data.id_meta); 
-        // Cria a nova div (pode ser um elemento HTML criado via código)
-        const percentual_novo = document.createElement("div");
-        percentual_novo.id = "percentual_meta_" + data.id_meta;
-        percentual_novo.className = `bg-green-500 h-2 rounded-full w-[${data.percentual}%]`; 
-        percentual_antigo.replaceWith(percentual_novo);
-        
-        // Atualizando as horas totais trabalhadas na meta
-        const horas_antigas = document.getElementById("horas_meta_" + data.id_meta); 
-        const horas_novas = document.createElement("span");
-        horas_novas.id = "horas_meta_" + data.id_meta;
-        horas_novas.className = `text-gray-500 ml-auto`;
-        horas_novas.textContent = fmtHoras(data.horas_da_meta);
-        horas_antigas.replaceWith(horas_novas);
-    }
+    atualizarTotalHoras(dia_semana, data.soma_diaria);
+    atualizarCardMeta(data.id_meta, data.percentual, data.horas_da_meta);
 });
 
 // Botao deletar atividade
@@ -153,12 +160,12 @@ document.addEventListener("click", async (event) => {
         })
     });
 
+    const data = await response.json();
+
     if (response.status != 200){
         alert("Erro: " + data["erro"]);
         return;
     }
-
-    const data = await response.json();
 
     // Remover a atividade da interface
     const atividadeDiv = document.getElementById(`div_atividade_${vinculo_id}`);
@@ -174,34 +181,53 @@ document.addEventListener("click", async (event) => {
         container.appendChild(mensagem);
     }
 
-    // Decrementando horas trabalhadas
-    const elem_total_horas = document.getElementById("total_horas_" + data.dia);
-    elem_total_horas.innerText = "Total: " + fmtHoras(data.soma_diaria);
-    
-    console.log(data.dia)
-    console.log(data.id_meta)
-    console.log(data.soma_diaria)
-    console.log(data.horas_da_meta)
-    console.log(data.percentual)
+    atualizarTotalHoras(data.dia, data.soma_diaria);
+    atualizarCardMeta(data.id_meta, data.percentual, data.horas_da_meta);
+});
 
-    // Atualizando o card da meta (apenas se ela existir)
-    if(data.id_meta != "None")
-    {
-        // Atualizando o percentual da meta...
-        const percentual_antigo = document.getElementById("percentual_meta_" + data.id_meta); 
-        // Cria a nova div (pode ser um elemento HTML criado via código)
-        const percentual_novo = document.createElement("div");
-        percentual_novo.id = "percentual_meta_" + data.id_meta;
-        percentual_novo.className = `bg-green-500 h-2 rounded-full w-[${data.percentual}%]`; 
-        percentual_antigo.replaceWith(percentual_novo);
-        
-        // Atualizando as horas totais trabalhadas na meta
-        const horas_antigas = document.getElementById("horas_meta_" + data.id_meta); 
-        const horas_novas = document.createElement("span");
-        horas_novas.id = "horas_meta_" + data.id_meta;
-        horas_novas.className = `text-gray-500 ml-auto`;
-        horas_novas.textContent = fmtHoras(data.horas_da_meta);
-        horas_antigas.replaceWith(horas_novas);
-    }
+
+// Objeto pra guardar os timers de cada input (já que tem vários na página)
+const timers = {};
+
+document.addEventListener("input", (event) => {
+    const input = event.target;
     
+    // Só executa se for um input de horas (filtra por algum padrão, ex: número puro como ID)
+    if (input.type !== "number") return;
+
+    const vinculo_id = input.id;
+    const novo_valor = input.value;
+
+    // Cancela o timer anterior, se existir
+    if (timers[vinculo_id]) {
+        clearTimeout(timers[vinculo_id]);
+    }
+
+    // Cria um novo timer de 2 segundos
+    timers[vinculo_id] = setTimeout(async () => {
+        console.log(`Atualizando vínculo ${vinculo_id} para ${novo_valor}h`);
+
+        try {
+            const response = await fetch(`atividade/atualizar_horas/`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": getCookie("csrftoken"), // se usar proteção CSRF
+                },
+                body: JSON.stringify({
+                    vinculo_id: vinculo_id,
+                    horas_feitas: novo_valor
+                })
+            });
+
+            const data = await response.json();
+            console.log("Atualizado com sucesso:", data);
+            atualizarTotalHoras(data.dia, data.soma_diaria);
+            atualizarCardMeta(data.id_meta, data.percentual, data.horas_da_meta);
+
+        } catch (error) {
+            console.error("Erro ao atualizar horas:", error);
+        }
+
+    }, 2000); // 2000ms = 2 segundos
 });

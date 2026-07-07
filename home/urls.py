@@ -11,4 +11,5 @@ urlpatterns = [
     path('atividades/', views.atividades, name='atividades'),
     path("atividade/gerenciar/", views.gerenciar_atividade, name="gerenciar_atividade"),
     path("atividade/associar/", views.associar_atividade, name="associar_atividade"),
+    path("atividade/atualizar_horas/", views.atualizar_horas, name="atualizar_horas"),
 ]
