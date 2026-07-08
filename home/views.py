@@ -8,6 +8,8 @@ from django.utils import timezone
 from .models import Atividade, Meta, AtividadeDoDia
 import json
 from collections import defaultdict
+from django.contrib.auth.decorators import login_required
+
 
 # Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
 dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
@@ -310,6 +312,7 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
 
 # View para as metas
+@login_required
 def metas(request):
     # Se for criar uma meta nova
     if request.method == "POST":
