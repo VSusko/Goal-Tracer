@@ -164,6 +164,8 @@ def atualizar_horas(request):
             print(f'erro? {e}')
             return JsonResponse({"erro": str(e)}, status=400)
 
+
+
 # View para associar uma atividade a um dia da semana
 def associar_atividade(request):
     # Obtem os dados passados pelo front
