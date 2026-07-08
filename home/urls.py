@@ -12,4 +12,5 @@ urlpatterns = [
     path("atividade/gerenciar/", views.gerenciar_atividade, name="gerenciar_atividade"),
     path("atividade/associar/", views.associar_atividade, name="associar_atividade"),
     path("atividade/atualizar_horas/", views.atualizar_horas, name="atualizar_horas"),
+    path("atividade/atualizar-horas-hoje/", views.atualizar_horas_hoje, name="atualizar_horas_hoje"),
 ]
