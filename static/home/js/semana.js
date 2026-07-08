@@ -1,38 +1,3 @@
-// Funcao para formatar horas
-window.fmtHoras = (valor) =>
-    Number(valor).toLocaleString('pt-BR', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-    }) + 'h';
-
-window.fmtNumero = (valor) =>
-    Number(valor).toLocaleString('pt-BR', {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-    });
-
-
-// Função para obter o token CSRF do cookie
-const csrftoken = getCookie("csrftoken");
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-
-            if (cookie.startsWith(name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-
-    return cookieValue;
-}
-
 // Botao nova atividade
 const botaoNovaAtividade = document.getElementById("botao_nova_atividade");
 const caixa_nova_atividade = document.getElementById("caixa_nova_atividade");
@@ -87,7 +52,7 @@ botaoAdicionar.addEventListener("click", async() => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
+            "X-CSRFToken": window.csrftoken
         },
         body: JSON.stringify({
             nome_atividade: nome_atividade,
@@ -153,7 +118,7 @@ document.addEventListener("click", async (event) => {
         method: "DELETE",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
+            "X-CSRFToken": window.csrftoken
         },
         body: JSON.stringify({
             vinculo_id: vinculo_id

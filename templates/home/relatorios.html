@@ -6,11 +6,12 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Goal Tracer</title>
 
-		<script src="https://cdn.tailwindcss.com"></script>
 		<!-- Carregando o favicon -->
 		{% load static %}
 		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
-		<link rel="stylesheet" href="{% static 'home/css/style.css' %}">
+		<script src="{% static 'home/js/utils.js' %}"></script>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 	</head>
 
 	<body>
@@ -48,32 +49,51 @@
 			<!-- Div para as caixas de horas totais e eficiencia -->
 			<div class="flex m-10">
 				<!-- Caixa de horas totais -->
-				<div class="card-horas bg-gradient-to-r from-blue-500 to-blue-600">
+				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-blue-500 to-blue-600">
 					<p class="text-xl">Horas totais semanais:</p>
-					<p class="text-5xl font-bold mt-5">{{ soma_horas_semana|floatformat:1 }}h</p>
-					<p class="text-xl mt-5">De {{ soma_metas }}h planejadas</p>
+					<p class="text-4xl font-bold mt-3">{{ soma_horas_semana|floatformat:1 }}h</p>
+					<p class="text-xl mt-4">De {{ soma_metas }}h planejadas</p>
 				</div>
 
-				<div class="card-horas bg-gradient-to-r from-green-500 to-green-600">
+				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-green-500 to-green-600">
 					<p class="text-xl">Eficiência:</p>
-					<p class="text-5xl font-bold mt-5">{{ eficiencia|floatformat:1 }}%</p>
-					<p class="text-xl mt-5">realizado vs planejado</p>
+					<p class="text-4xl font-bold mt-3">{{ eficiencia|floatformat:1 }}%</p>
+					<p class="text-xl mt-4">realizado vs planejado</p>
 				</div>
 
-				<div class="card-horas bg-gradient-to-r from-orange-500 to-orange-600">
+				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-orange-500 to-orange-600">
 					<p class="text-xl">Dias ativos:</p>
-					<p class="text-5xl font-bold mt-5">{{ dias_ativos }}/7</p>
-					<p class="text-xl mt-5">dias da semana</p>
+					<p class="text-4xl font-bold mt-3">{{ dias_ativos }}/7</p>
+					<p class="text-xl mt-4">dias da semana</p>
 				</div>
 			</div>
-			 
 			
-			
+			<div class="flex">
+				<!-- Div para o grafico -->
+				{{ grafico_labels|json_script:"grafico_labels" }}
+				{{ grafico_dados|json_script:"grafico_dados" }}
+				<div class="ml-12 mb-20 w-[40vw] bg-white rounded-xl border-2 border-gray-200 p-6 shadow-xl">
+					<h2 class="text-lg font-medium text-gray-700 mb-4">Horas por dia</h2>
+					<canvas id="grafico_horas"></canvas>
+				</div>
+
+			<!-- Div para atividades mais frequentes -->
+				<div class="flex flex-col gap-3 ml-12 mb-20 w-[40vw] bg-white rounded-xl border-2 border-gray-200 p-6 shadow-xl">
+					<h2 class="text-lg font-medium text-gray-700 mb-4">Top 5 atividades mais frequentes</h2>
+					{% for vinculo in top5 %}
+						<div class="flex bg-blue-200/60 p-2 border-2 border-blue-500 rounded-lg">
+							<p class="">{{ vinculo.atividade__nome }}</p>
+							<p class="font-bold text-blue-500 ml-auto">Total: {{ vinculo.total_horas|floatformat:1 }}h</p>
+						</div>
+						{% empty %}
+						<p class="text-gray-500">Nenhuma atividade encontrada.</p>
+					{% endfor %}
+				</div>
+			</div>
+				
 		</div>
-		
-		
-		
-		
+
+	<script src="{% static 'home/js/relatorios.js' %}"></script>
 	</body>
 
 </html>
