@@ -47,32 +47,32 @@
 			</div>
 
 			<!-- Div para as caixas de horas totais e eficiencia -->
-			<div class="flex m-10">
+			<div class="flex mt-5 mx-10">
 				<!-- Caixa de horas totais -->
-				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-blue-500 to-blue-600">
-					<p class="text-xl">Horas totais semanais:</p>
-					<p class="text-4xl font-bold mt-3">{{ soma_horas_semana|floatformat:1 }}h</p>
-					<p class="text-xl mt-4">De {{ soma_metas }}h planejadas</p>
+				<div class="flex flex-col w-[15vw] h-full m-5 px-3 py-2 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-blue-500 to-blue-600">
+					<p class="text-base">Horas totais semanais:</p>
+					<p class="text-3xl font-bold mt-2">{{ soma_horas_semana|floatformat:1 }}h</p>
+					<p class="text-base mt-3">De {{ soma_metas }}h planejadas</p>
 				</div>
 
-				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-green-500 to-green-600">
-					<p class="text-xl">Eficiência:</p>
-					<p class="text-4xl font-bold mt-3">{{ eficiencia|floatformat:1 }}%</p>
-					<p class="text-xl mt-4">realizado vs planejado</p>
+				<div class="flex flex-col w-[15vw] h-full m-5 px-3 py-2 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-green-500 to-green-600">
+					<p class="text-base">Eficiência:</p>
+					<p class="text-3xl font-bold mt-2">{{ eficiencia|floatformat:1 }}%</p>
+					<p class="text-base mt-3">realizado vs planejado</p>
 				</div>
 
-				<div class="flex flex-col w-[20vw] h-full m-5 px-4 py-3 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-orange-500 to-orange-600">
-					<p class="text-xl">Dias ativos:</p>
-					<p class="text-4xl font-bold mt-3">{{ dias_ativos }}/7</p>
-					<p class="text-xl mt-4">dias da semana</p>
+				<div class="flex flex-col w-[15vw] h-full m-5 px-3 py-2 text-white rounded-xl text-left shadow-lg bg-gradient-to-r from-orange-500 to-orange-600">
+					<p class="text-base">Dias ativos:</p>
+					<p class="text-3xl font-bold mt-2">{{ dias_ativos }}/7</p>
+					<p class="text-base mt-3">dias da semana</p>
 				</div>
 			</div>
 			
-			<div class="flex">
+			<div class="ml-16 flex mt-5">
 				<!-- Div para o grafico -->
 				{{ grafico_labels|json_script:"grafico_labels" }}
 				{{ grafico_dados|json_script:"grafico_dados" }}
-				<div class="ml-12 mb-20 w-[40vw] bg-white rounded-xl border-2 border-gray-200 p-6 shadow-xl">
+				<div class="mb-20 w-[40vw] bg-white rounded-xl border-2 border-gray-200 p-6 shadow-xl">
 					<h2 class="text-lg font-medium text-gray-700 mb-4">Horas por dia</h2>
 					<canvas id="grafico_horas"></canvas>
 				</div>

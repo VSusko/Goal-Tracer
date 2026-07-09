@@ -14,6 +14,28 @@ from django.contrib.auth.decorators import login_required
 # Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
+# Funcao auxiliar que retorna a data de hoje formatada, usada em varias views
+def data_formatada():
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = DIAS[hoje_data.weekday()] 
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+    
+    return data_formatada
+
+
 def index(request):
     # Obtendo todas as atividades do banco de dados e os vinculos
     atividades  = Atividade.objects.prefetch_related('vinculos_dias').all()
@@ -38,25 +60,8 @@ def index(request):
     
     metas, _ = gerar_estatisticas_metas()
 
-    hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
-
-    dias_extenso = {
-        "Segunda": "Segunda-feira",
-        "Terça": "Terça-feira",
-        "Quarta": "Quarta-feira",
-        "Quinta": "Quinta-feira",
-        "Sexta": "Sexta-feira",
-        "Sábado": "Sábado",
-        "Domingo": "Domingo",
-    }
-    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
-    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
-            
     context = {
-        "data_formatada": data_formatada,
+        "data_formatada": data_formatada(),
         "metas": metas,
         "dias_horas": dias_horas,
         "atividades": atividades,
@@ -148,6 +153,7 @@ def gerar_dados_atividade(dia, atividade_nome, id=None, operacao=None):
     
     return context    
 
+# View para atualizar as horas feitas de uma atividade vinculada a um dia da semana
 def atualizar_horas(request):
     data = json.loads(request.body)
     if request.method == "POST":
@@ -183,17 +189,7 @@ def associar_atividade(request):
                 horas_feitas= float (data["horas_feitas"]),
                 atividade=atividade
             )
-            
-            # Se foi enviada uma meta semanal e a atividade ainda nao tem meta, cria automaticamente
-            meta_horas_recebida = data.get("meta_horas")
-            if meta_horas_recebida:
-                ja_tem_meta = Meta.objects.filter(atividade=atividade).exists()
-                if not ja_tem_meta:
-                    Meta.objects.create(
-                        atividade=atividade,
-                        meta_horas=float(meta_horas_recebida)
-                    )
-            
+                      
             # Obtem o contexto pela funcao auxiliar
             context = gerar_dados_atividade(data["dia_semana"], atividade.nome, novo_vinculo.id, operacao="adicionar")
             
@@ -269,29 +265,11 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
     # Se nao foi passada uma atividade, retorna todos os dados
     atividades_sem_meta = list(Atividade.objects.filter(vinculos_metas__isnull=True).values_list('nome', flat=True))
-    print(f'Atividades sem meta: {atividades_sem_meta}')
-
-    
-    hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
-
-    dias_extenso = {
-        "Segunda": "Segunda-feira",
-        "Terça": "Terça-feira",
-        "Quarta": "Quarta-feira",
-        "Quinta": "Quinta-feira",
-        "Sexta": "Sexta-feira",
-        "Sábado": "Sábado",
-        "Domingo": "Domingo",
-    }
-    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
-    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+    print(f'Atividades sem meta: {atividades_sem_meta}')    
 
     # Monta o contexto
     context = {
-        "data_formatada": data_formatada,
+        "data_formatada": data_formatada(),
         "atividades" : atividades_sem_meta,
         "metas_atingidas": metas_atingidas,
         "total_metas": len(metas),
@@ -368,29 +346,13 @@ def relatorios(request):
     # Garante que todos os dias aparecem, mesmo os sem atividade
     horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
-    hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
-
-    dias_extenso = {
-        "Segunda": "Segunda-feira",
-        "Terça": "Terça-feira",
-        "Quarta": "Quarta-feira",
-        "Quinta": "Quinta-feira",
-        "Sexta": "Sexta-feira",
-        "Sábado": "Sábado",
-        "Domingo": "Domingo",
-    }
-    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
-    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
     top5 = AtividadeDoDia.objects.values('atividade__nome') \
                                        .annotate(total_horas=Sum('horas_feitas')) \
                                        .filter(total_horas__gt=0) \
                                        .order_by('-total_horas')[:5]
 
     context =  {
-        "data_formatada": data_formatada,
+        "data_formatada": data_formatada(),
         "soma_horas_semana": soma_horas_semana["total_horas"], 
         "soma_metas":soma_metas["total_horas"], 
         "top5": top5,
@@ -405,22 +367,8 @@ def relatorios(request):
 
 def hoje(request):
     hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
-
-    dias_extenso = {
-        "Segunda": "Segunda-feira",
-        "Terça": "Terça-feira",
-        "Quarta": "Quarta-feira",
-        "Quinta": "Quinta-feira",
-        "Sexta": "Sexta-feira",
-        "Sábado": "Sábado",
-        "Domingo": "Domingo",
-    }
-    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
-
-    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
-
+    dia_semana_hoje = DIAS[hoje_data.weekday()]
+    
     vinculos_hoje = AtividadeDoDia.objects.filter(dia_semana=dia_semana_hoje).select_related('atividade')
 
     atividades_hoje = []
@@ -468,7 +416,7 @@ def hoje(request):
         progresso_geral = min(int((soma_horas_feitas / soma_metas_diarias) * 100), 100)
 
     context = {
-        "data_formatada": data_formatada,
+        "data_formatada": data_formatada(),
         "atividades_hoje": atividades_hoje,
         "soma_horas_feitas": round(soma_horas_feitas, 1),
         "soma_metas_diarias": round(soma_metas_diarias, 1),

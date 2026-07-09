@@ -44,13 +44,16 @@ const botaoAdicionar = document.getElementById("botao_adicionar");
 botaoAdicionar.addEventListener("click", async() => {
     // Lógica para adicionar a atividade
     console.log(csrftoken);
+    const horas_feitas = document.getElementById("caixa_horas").value;
+
+    if(horas_feitas === "" || isNaN(horas_feitas) || Number(horas_feitas) < 0 || Number(horas_feitas) > 24){
+        alert("Erro: o valor de horas deve ser um número entre 0 e 24.");
+        return;
+    }
+
     const nome_atividade = document.getElementById("caixa_atividades").value;
     const dia_semana = document.getElementById("caixa_dia_semana").value;
-    const horas_feitas = document.getElementById("caixa_horas").value;
     
-    // novo
-    const meta_semanal = document.getElementById("caixa_meta_semanal").value;
- 
     const response = await fetch("/atividade/associar/", {
         method: "POST",
         headers: {
@@ -61,7 +64,6 @@ botaoAdicionar.addEventListener("click", async() => {
             nome_atividade: nome_atividade,
             dia_semana: dia_semana,
             horas_feitas: horas_feitas,
-            meta_horas: meta_semanal // novo
         })
     });
 
@@ -79,7 +81,6 @@ botaoAdicionar.addEventListener("click", async() => {
 
     // Resetando as entradas
     document.getElementById("caixa_horas").value = "";
-    document.getElementById("caixa_meta_semanal").value = "";
 
     // Adicionando a nova atividade na interface
     const container_body = document.getElementById("div_body_atividade_" + dia_semana);
@@ -94,7 +95,7 @@ botaoAdicionar.addEventListener("click", async() => {
             <p>${nome_atividade}</p>
             <!-- Progresso feito -->
             <div class="flex justify-end items-center gap-1 ml-auto">
-                <input type="number" id="${data.id}" value="${horas_feitas}" min="0" max="24" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
+                <input type="number" data-vinculo="${data.id}" value="${horas_feitas}" min="0" max="24" step="0.5" class="ml-auto border-2 rounded-lg bg-gray-50 p-1">
                 <p>h</p>
                 <!-- Botao deletar  -->
                 <div id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 pt-1 ml-3">
@@ -161,11 +162,11 @@ const timers = {};
 
 document.addEventListener("input", (event) => {
     const input = event.target;
-    
-    // Só executa se for um input de horas (filtra por algum padrão, ex: número puro como ID)
-    if (input.type !== "number") return;
 
-    const vinculo_id = input.id;
+    // Só executa se for um input de edição de horas
+    if (!input.dataset.vinculo) return;
+
+    const vinculo_id = input.dataset.vinculo;
     const novo_valor = input.value;
 
     // Cancela o timer anterior, se existir
