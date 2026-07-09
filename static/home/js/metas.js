@@ -1,24 +1,3 @@
-// Função para obter o token CSRF do cookie
-const csrftoken = getCookie("csrftoken");
-function getCookie(name) {
-    let cookieValue = null;
-
-    if (document.cookie && document.cookie !== "") {
-        const cookies = document.cookie.split(";");
-
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-
-            if (cookie.startsWith(name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-
-    return cookieValue;
-}
-
 // Botao adicionar atividade
 const botaoAdicionar = document.getElementById("botao_adicionar");
 botaoAdicionar.addEventListener("click", async() => {
@@ -39,7 +18,7 @@ botaoAdicionar.addEventListener("click", async() => {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken
+            "X-CSRFToken": window.csrftoken
         },
         body: JSON.stringify({
             operacao: "adicionar",
@@ -130,7 +109,7 @@ document.addEventListener("click", async (event) => {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": csrftoken
+                "X-CSRFToken": window.csrftoken
             },
             body: JSON.stringify({
                 operacao: "deletar",

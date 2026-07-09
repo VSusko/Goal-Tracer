@@ -12,7 +12,7 @@ from django.contrib.auth.decorators import login_required
 
 
 # Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
-dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
 def index(request):
     # Obtendo todas as atividades do banco de dados e os vinculos
@@ -21,7 +21,7 @@ def index(request):
     
     # Obtendo os dias que possuem alguma atividade
     dias_usados = AtividadeDoDia.objects.values_list("dia_semana",flat=True).distinct()
-    dias_vazios = list(set(dias)  - set(dias_usados))
+    dias_vazios = list(set(DIAS)  - set(dias_usados))
     
     # Criando um dicionario para colocar a soma total diaria de cada atividade
     soma_por_dia = defaultdict(float)
@@ -29,12 +29,12 @@ def index(request):
         # Cada posicao do dicionario é um dia da semana. Somamos nesse dia a quantidade de horas investidas na atividade da iteracao
         soma_por_dia[atividade.dia_semana] += atividade.horas_feitas
       
-    # Criando uma lista que contem, na mesma ordem da lista "dias", o total de horas trabalhadas em cada um dos dias
-    total_horas_por_dia = [soma_por_dia[dia] for dia in dias]
+    # Criando uma lista que contem, na mesma ordem da lista "DIAS", o total de horas trabalhadas em cada um dos dias
+    total_horas_por_dia = [soma_por_dia[dia] for dia in DIAS]
     
     # dias_horas é a variavel que possui uma lista de tuplas, em que cada elemento é um dia seguido 
     # das horas trabalhadas nele (somando todas as atividades)
-    dias_horas = zip(dias, total_horas_por_dia)
+    dias_horas = zip(DIAS, total_horas_por_dia)
     
     metas, _ = gerar_estatisticas_metas()
 
@@ -359,6 +359,14 @@ def relatorios(request):
         eficiencia = (soma_horas_semana["total_horas"]/soma_metas["total_horas"]) * 100
     except ZeroDivisionError:
         eficiencia = 0
+        
+    horas_por_dia_consulta = AtividadeDoDia.objects.values('dia_semana').annotate(
+        total=Coalesce(Sum('horas_feitas'), Value(0.0))
+    )
+    horas_map = {item['dia_semana']: item['total'] for item in horas_por_dia_consulta}
+
+    # Garante que todos os dias aparecem, mesmo os sem atividade
+    horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
     hoje_data = timezone.localdate()
     dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
@@ -376,13 +384,20 @@ def relatorios(request):
              "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
 
     data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+    top5 = AtividadeDoDia.objects.values('atividade__nome') \
+                                       .annotate(total_horas=Sum('horas_feitas')) \
+                                       .filter(total_horas__gt=0) \
+                                       .order_by('-total_horas')[:5]
 
     context =  {
         "data_formatada": data_formatada,
         "soma_horas_semana": soma_horas_semana["total_horas"], 
         "soma_metas":soma_metas["total_horas"], 
+        "top5": top5,
         "dias_ativos": dias_ativos,
-        "eficiencia": eficiencia
+        "eficiencia": eficiencia,
+        "grafico_labels": DIAS,
+        "grafico_dados": horas_por_dia,
     }
         
     return render(request,"home/relatorios.html", context)
