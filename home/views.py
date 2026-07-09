@@ -4,9 +4,12 @@ from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db.models import Sum, Value
 from django.db.models.functions import Coalesce
+from django.utils import timezone
 from .models import Atividade, Meta, AtividadeDoDia
 import json
 from collections import defaultdict
+from django.contrib.auth.decorators import login_required
+
 
 # Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
@@ -34,8 +37,26 @@ def index(request):
     dias_horas = zip(DIAS, total_horas_por_dia)
     
     metas, _ = gerar_estatisticas_metas()
+
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
             
     context = {
+        "data_formatada": data_formatada,
         "metas": metas,
         "dias_horas": dias_horas,
         "atividades": atividades,
@@ -163,6 +184,16 @@ def associar_atividade(request):
                 atividade=atividade
             )
             
+            # Se foi enviada uma meta semanal e a atividade ainda nao tem meta, cria automaticamente
+            meta_horas_recebida = data.get("meta_horas")
+            if meta_horas_recebida:
+                ja_tem_meta = Meta.objects.filter(atividade=atividade).exists()
+                if not ja_tem_meta:
+                    Meta.objects.create(
+                        atividade=atividade,
+                        meta_horas=float(meta_horas_recebida)
+                    )
+            
             # Obtem o contexto pela funcao auxiliar
             context = gerar_dados_atividade(data["dia_semana"], atividade.nome, novo_vinculo.id, operacao="adicionar")
             
@@ -240,8 +271,27 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
     atividades_sem_meta = list(Atividade.objects.filter(vinculos_metas__isnull=True).values_list('nome', flat=True))
     print(f'Atividades sem meta: {atividades_sem_meta}')
 
+    
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+
     # Monta o contexto
     context = {
+        "data_formatada": data_formatada,
         "atividades" : atividades_sem_meta,
         "metas_atingidas": metas_atingidas,
         "total_metas": len(metas),
@@ -262,6 +312,7 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
 
 # View para as metas
+@login_required
 def metas(request):
     # Se for criar uma meta nova
     if request.method == "POST":
@@ -317,12 +368,29 @@ def relatorios(request):
     # Garante que todos os dias aparecem, mesmo os sem atividade
     horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
     top5 = AtividadeDoDia.objects.values('atividade__nome') \
                                        .annotate(total_horas=Sum('horas_feitas')) \
                                        .filter(total_horas__gt=0) \
                                        .order_by('-total_horas')[:5]
 
     context =  {
+        "data_formatada": data_formatada,
         "soma_horas_semana": soma_horas_semana["total_horas"], 
         "soma_metas":soma_metas["total_horas"], 
         "top5": top5,
@@ -334,9 +402,100 @@ def relatorios(request):
         
     return render(request,"home/relatorios.html", context)
 
-# View para a pagina do dia de hoje
+
 def hoje(request):
-    return render(request, "home/hoje.html")
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+
+    vinculos_hoje = AtividadeDoDia.objects.filter(dia_semana=dia_semana_hoje).select_related('atividade')
+
+    atividades_hoje = []
+    soma_horas_feitas = 0.0
+    soma_metas_diarias = 0.0
+    total_concluidas = 0
+
+    for vinculo in vinculos_hoje:
+        # Quantos dias da semana essa atividade aparece (pra dividir a meta semanal entre eles)
+        dias_cadastrados = AtividadeDoDia.objects.filter(atividade=vinculo.atividade).count()
+
+        # Busca a meta semanal da atividade, se existir
+        meta = Meta.objects.filter(atividade=vinculo.atividade).first()
+
+        if meta and dias_cadastrados > 0:
+            meta_diaria = meta.meta_horas / dias_cadastrados
+        else:
+            meta_diaria = 0.0
+
+        if meta_diaria == 0:
+            percentual = 0
+        else:
+            percentual = min(int((vinculo.horas_feitas / meta_diaria) * 100), 100)
+        
+        concluida = percentual >= 100
+
+        if concluida:
+            total_concluidas += 1
+
+        soma_horas_feitas += vinculo.horas_feitas
+        soma_metas_diarias += meta_diaria
+
+        atividades_hoje.append({
+            "id": vinculo.id,
+            "nome": vinculo.atividade.nome,
+            "horas_feitas": vinculo.horas_feitas,
+            "meta_diaria": round(meta_diaria, 1),
+            "percentual": percentual,
+            "concluida": concluida,
+        })
+
+    if soma_metas_diarias == 0:
+        progresso_geral = 0 
+    else:
+        progresso_geral = min(int((soma_horas_feitas / soma_metas_diarias) * 100), 100)
+
+    context = {
+        "data_formatada": data_formatada,
+        "atividades_hoje": atividades_hoje,
+        "soma_horas_feitas": round(soma_horas_feitas, 1),
+        "soma_metas_diarias": round(soma_metas_diarias, 1),
+        "total_concluidas": total_concluidas,
+        "total_atividades_hoje": len(atividades_hoje),
+        "progresso_geral": progresso_geral,
+    }
+
+    return render(request, "home/hoje.html", context)
+
+
+# View nova, pra atualizar as horas feitas de uma atividade específica hoje
+def atualizar_horas_hoje(request):
+    # print(request.POST)
+    if request.method == "POST":
+        vinculo_id = request.POST.get("vinculo_id")
+        horas_feitas = request.POST.get("horas_feitas")
+
+        try:
+            vinculo = AtividadeDoDia.objects.get(id=vinculo_id)
+            vinculo.horas_feitas = float(horas_feitas)
+            vinculo.save()
+        except AtividadeDoDia.DoesNotExist:
+            pass  # se o vinculo nao existir mais, so ignora e volta pra tela
+
+    return redirect('hoje')
+
 
 # View para a pagina do dia de hoje
 def calendario(request):

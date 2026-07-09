@@ -47,6 +47,9 @@ botaoAdicionar.addEventListener("click", async() => {
     const nome_atividade = document.getElementById("caixa_atividades").value;
     const dia_semana = document.getElementById("caixa_dia_semana").value;
     const horas_feitas = document.getElementById("caixa_horas").value;
+    
+    // novo
+    const meta_semanal = document.getElementById("caixa_meta_semanal").value;
  
     const response = await fetch("/atividade/associar/", {
         method: "POST",
@@ -57,7 +60,8 @@ botaoAdicionar.addEventListener("click", async() => {
         body: JSON.stringify({
             nome_atividade: nome_atividade,
             dia_semana: dia_semana,
-            horas_feitas: horas_feitas
+            horas_feitas: horas_feitas,
+            meta_horas: meta_semanal // novo
         })
     });
 
@@ -75,6 +79,7 @@ botaoAdicionar.addEventListener("click", async() => {
 
     // Resetando as entradas
     document.getElementById("caixa_horas").value = "";
+    document.getElementById("caixa_meta_semanal").value = "";
 
     // Adicionando a nova atividade na interface
     const container_body = document.getElementById("div_body_atividade_" + dia_semana);

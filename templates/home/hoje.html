@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-  
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Goal Tracer</title>
 
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Goal Tracer</title>
 		<!-- Carregando o favicon -->
 		{% load static %}
 		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
@@ -13,27 +12,90 @@
 		<script src="https://cdn.tailwindcss.com"></script>
 	</head>
 
-	<body>
-		<!-- Agrupamento dos links da pagina  -->
-		<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
-			<!-- Div da logo e o titulo -->
-			<div class="flex">
-				{% load static %}
-				<img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
-				<h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
-			</div>
-			<!-- Div dos links -->
-			<div class="flex items-center gap-6 text-gray-500 text-sm">
-				<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
-				<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
-				<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
-				<a href="{% url 'hoje' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Hoje</a>
-				<a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
-				<a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
-			</div>
-		</nav>
+	<script src="https://cdn.tailwindcss.com"></script>
+	{% load static %}
+	<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+</head>
 
-		<p>...</p>
-	</body>
+<body>
+	{% csrf_token %}
+	<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
+		<div class="flex">
+			{% load static %}
+			<img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
+			<h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
+		</div>
+		<div class="flex items-center gap-6 text-gray-500 text-sm">
+			<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
+			<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
+			<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
+			<a href="{% url 'hoje' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Hoje</a>
+			<a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
+			<a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
+		</div>
+	</nav>
+
+	<div class="p-10">
+		<h2 class="text-3xl font-bold">Hoje</h2>
+		<p class="text-gray-400 text-sm mt-1">{{ data_formatada }}</p>
+
+		<!-- Cards -->
+		<div class="grid grid-cols-3 gap-4 mt-6">
+			<div class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg text-white rounded-xl p-5">
+				<p class="text-sm">Tempo Total</p>
+				<p class="text-2xl font-bold mt-2">{{ soma_horas_feitas }}h <span class="text-sm font-normal">/ {{ soma_metas_diarias }}h</span></p>
+				<div class="w-full bg-white/30 h-2 rounded-full mt-3">
+					<div class="bg-white h-2 rounded-full w-[{{ progresso_geral }}%]"></div>
+				</div>
+			</div>
+
+			<div class="bg-gradient-to-r from-green-600 to-green-700 shadow-lg text-white rounded-xl p-5">
+				<p class="text-sm">Concluídas</p>
+				<p class="text-2xl font-bold mt-2">{{ total_concluidas }} <span class="text-sm font-normal">/ {{ total_atividades_hoje }}</span></p>
+			</div>
+
+			<div class="bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg text-white rounded-xl p-5">
+				<p class="text-sm">Progresso</p>
+				<p class="text-2xl font-bold mt-2">{{ progresso_geral }}%</p>
+				<p class="text-sm mt-1">do planejado</p>
+			</div>
+		</div>
+
+		<!-- Lista de atividades -->
+		<div class="bg-white rounded-xl border border-gray-100 shadow-lg mt-6 p-6">
+			<h3 class="font-semibold text-lg mb-4">Atividades de Hoje</h3>
+
+			{% for atividade in atividades_hoje %}
+				<div class="flex items-center gap-4 border-2 border-gray-100 rounded-lg p-4 mb-3" id="linha_atividade_{{ atividade.id }}">
+					<!-- Bolinha de concluído (calculada automaticamente) -->
+					<div class="w-5 h-5 rounded-full border-2 {% if atividade.concluida %}bg-green-500 border-green-500{% else %}border-gray-300{% endif %}"></div>
+
+					<div>
+						<p class="font-semibold">{{ atividade.nome }}</p>
+						<p class="text-gray-400 text-sm">{{ atividade.horas_feitas }}h / {{ atividade.meta_diaria }}h</p>
+					</div>
+
+					<div class="flex-1 mx-4">
+						<div class="w-full bg-gray-200 h-2 rounded-full">
+							<div class="bg-blue-500 h-2 rounded-full w-[{{ atividade.percentual }}%]"></div>
+						</div>
+					</div>
+
+					<!-- Botao que abre o prompt de edicao -->
+					<form method="post" action="{% url 'atualizar_horas_hoje' %}" class="flex items-center gap-2">
+						{% csrf_token %}
+						<input type="hidden" name="vinculo_id" value="{{ atividade.id }}">
+						<input type="number" name="horas_feitas" value="{{ atividade.horas_feitas }}" min="0" max="24" step="0.5" class="border-2 rounded-lg bg-gray-50 p-1 w-20">
+						<button type="submit" class="bg-blue-600 text-white rounded-lg px-3 py-2 hover:scale-110 duration-200 ease-in-out">
+							Salvar
+						</button>
+					</form>
+				</div>
+			{% empty %}
+				<p class="text-gray-500">Nenhuma atividade planejada para hoje.</p>
+			{% endfor %}
+		</div>
+	</div>
+</body>
 
 </html>
