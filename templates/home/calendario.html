@@ -47,6 +47,11 @@
                 <a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
                 <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
                 <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-800">Sair</button>
+                </form>
             </div>
         </nav>
 

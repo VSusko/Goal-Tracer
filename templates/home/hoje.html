@@ -1,11 +1,40 @@
-{% extends "home/base.html" %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
 
-{% block title %}Goal Tracer - Hoje{% endblock %}
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Goal Tracer</title>
 
-{% block nav_hoje %}bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold{% endblock %}
+	<script src="https://cdn.tailwindcss.com"></script>
+	{% load static %}
+	<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+</head>
 
-{% block content %}
+<body>
+	{% csrf_token %}
+	<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
+		<div class="flex">
+			{% load static %}
+			<img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
+			<h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
+		</div>
+		<!-- Div dos links -->
+            <div class="flex items-center gap-6 text-gray-500 text-sm">
+                <a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
+                <a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
+                <a href="{% url 'index' %}" class="text-gray-800">Semana</a>
+                <a href="{% url 'hoje' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Hoje</a>
+                <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
+                <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-800">Sair</button>
+                </form>
+            </div>
+	</nav>
+
 	<div class="p-10">
 		<h2 class="text-3xl font-bold">Hoje</h2>
 		<p class="text-gray-400 text-sm mt-1">{{ data_formatada }}</p>
@@ -38,6 +67,7 @@
 
 			{% for atividade in atividades_hoje %}
 				<div class="flex items-center gap-4 border-2 border-gray-100 rounded-lg p-4 mb-3" id="linha_atividade_{{ atividade.id }}">
+					<!-- Bolinha de concluído (calculada automaticamente) -->
 					<div class="w-5 h-5 rounded-full border-2 {% if atividade.concluida %}bg-green-500 border-green-500{% else %}border-gray-300{% endif %}"></div>
 
 					<div>
@@ -51,6 +81,7 @@
 						</div>
 					</div>
 
+					<!-- Botao que abre o prompt de edicao -->
 					<form method="post" action="{% url 'atualizar_horas_hoje' %}" class="flex items-center gap-2">
 						{% csrf_token %}
 						<input type="hidden" name="vinculo_id" value="{{ atividade.id }}">
@@ -65,4 +96,6 @@
 			{% endfor %}
 		</div>
 	</div>
-{% endblock %}
+</body>
+
+</html>
