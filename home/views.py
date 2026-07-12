@@ -9,13 +9,12 @@ from .models import Atividade, Meta, AtividadeDoDia
 import json
 from collections import defaultdict
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 
 
-# Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
+# Lista de DIAS da semana, usada para manter a ordem correta na exibicao dos dados
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
-<<<<<<< Updated upstream
-=======
 # Funcao auxiliar que retorna a data de hoje formatada, usada em varias views
 def data_formatada():
     hoje_data = timezone.localdate()
@@ -38,13 +37,12 @@ def data_formatada():
     return data_formatada
 
 @login_required
->>>>>>> Stashed changes
 def index(request):
     # Obtendo todas as atividades do banco de dados e os vinculos
     atividades  = Atividade.objects.prefetch_related('vinculos_dias').all()
     vinculos    = AtividadeDoDia.objects.all()
     
-    # Obtendo os dias que possuem alguma atividade
+    # Obtendo os DIAS que possuem alguma atividade
     dias_usados = AtividadeDoDia.objects.values_list("dia_semana",flat=True).distinct()
     dias_vazios = list(set(DIAS)  - set(dias_usados))
     
@@ -54,7 +52,7 @@ def index(request):
         # Cada posicao do dicionario é um dia da semana. Somamos nesse dia a quantidade de horas investidas na atividade da iteracao
         soma_por_dia[atividade.dia_semana] += atividade.horas_feitas
       
-    # Criando uma lista que contem, na mesma ordem da lista "DIAS", o total de horas trabalhadas em cada um dos dias
+    # Criando uma lista que contem, na mesma ordem da lista "DIAS", o total de horas trabalhadas em cada um dos DIAS
     total_horas_por_dia = [soma_por_dia[dia] for dia in DIAS]
     
     # dias_horas é a variavel que possui uma lista de tuplas, em que cada elemento é um dia seguido 
@@ -64,7 +62,7 @@ def index(request):
     metas, _ = gerar_estatisticas_metas()
 
     hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+    dia_semana_hoje = DIAS[hoje_data.weekday()]  # a lista "DIAS" já existe lá em cima do arquivo
 
     dias_extenso = {
         "Segunda": "Segunda-feira",
@@ -298,7 +296,7 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
     
     hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+    dia_semana_hoje = DIAS[hoje_data.weekday()]  # a lista "DIAS" já existe lá em cima do arquivo
 
     dias_extenso = {
         "Segunda": "Segunda-feira",
@@ -389,11 +387,11 @@ def relatorios(request):
     )
     horas_map = {item['dia_semana']: item['total'] for item in horas_por_dia_consulta}
 
-    # Garante que todos os dias aparecem, mesmo os sem atividade
+    # Garante que todos os DIAS aparecem, mesmo os sem atividade
     horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
     hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+    dia_semana_hoje = DIAS[hoje_data.weekday()]  # a lista "DIAS" já existe lá em cima do arquivo
 
     dias_extenso = {
         "Segunda": "Segunda-feira",
@@ -429,7 +427,7 @@ def relatorios(request):
 
 def hoje(request):
     hoje_data = timezone.localdate()
-    dia_semana_hoje = dias[hoje_data.weekday()]  # a lista "dias" já existe lá em cima do arquivo
+    dia_semana_hoje = DIAS[hoje_data.weekday()]  # a lista "DIAS" já existe lá em cima do arquivo
 
     dias_extenso = {
         "Segunda": "Segunda-feira",
@@ -453,7 +451,7 @@ def hoje(request):
     total_concluidas = 0
 
     for vinculo in vinculos_hoje:
-        # Quantos dias da semana essa atividade aparece (pra dividir a meta semanal entre eles)
+        # Quantos DIAS da semana essa atividade aparece (pra dividir a meta semanal entre eles)
         dias_cadastrados = AtividadeDoDia.objects.filter(atividade=vinculo.atividade).count()
 
         # Busca a meta semanal da atividade, se existir
@@ -524,3 +522,16 @@ def atualizar_horas_hoje(request):
 # View para a pagina do dia de hoje
 def calendario(request):
     return render(request, "home/calendario.html")
+
+
+
+def cadastro(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+
+    return render(request, "home/cadastro.html", {"form": form})
