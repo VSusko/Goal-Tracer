@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 <!DOCTYPE html>
 <html lang="pt-BR">
   
@@ -37,3 +38,44 @@
 	</body>
 
 </html>
+=======
+{% extends "home/base.html" %}
+{% load static %}
+
+{% block title %}Goal Tracer - Calendário{% endblock %}
+
+{% block nav_calendario %}bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold{% endblock %}
+
+{% block extra_head %}
+	<!-- FullCalendar -->
+	<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+
+	<style>
+		.fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; text-transform: capitalize; }
+		.fc-toolbar { background: linear-gradient(to right, #c7deff, rgb(167, 186, 255)); padding: 6px; }
+		.fc-button { background-color: #eff6ff00 !important; color: #000000 !important; border: none !important; box-shadow: none !important; }
+		.fc-button:hover { background-color: #dbeafe !important; }
+		.fc-daygrid-day { cursor: pointer; }
+		.fc-daygrid-day:hover { background-color: #f8fafc; }
+		.fc-day-today { background-color: #eff6ff !important; }
+		.fc-event { border: none !important; padding: 1px 4px; font-size: 0.75rem; border-radius: 4px; }
+		.fc-event-title { font-weight: 500; }
+		.fc-daygrid-event-dot { display: none; }
+		.fc-daygrid-day-top { width: 100%; }
+		.fc-daygrid-day-number { width: 100%; }
+	</style>
+{% endblock %}
+
+{% block content %}
+	<div class="p-8 max-w-4xl mx-auto">
+		<div id="calendario" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6"></div>
+	</div>
+{% endblock %}
+
+{% block scripts %}
+	<!-- Scripts (ordem importa) -->
+	<script src="{% static 'home/js/utils.js' %}"></script>
+	<script src="{% static 'home/js/calendario.js' %}"></script>
+{% endblock %}
+>>>>>>> Stashed changes

@@ -14,6 +14,31 @@ from django.contrib.auth.decorators import login_required
 # Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
+<<<<<<< Updated upstream
+=======
+# Funcao auxiliar que retorna a data de hoje formatada, usada em varias views
+def data_formatada():
+    hoje_data = timezone.localdate()
+    dia_semana_hoje = DIAS[hoje_data.weekday()] 
+
+    dias_extenso = {
+        "Segunda": "Segunda-feira",
+        "Terça": "Terça-feira",
+        "Quarta": "Quarta-feira",
+        "Quinta": "Quinta-feira",
+        "Sexta": "Sexta-feira",
+        "Sábado": "Sábado",
+        "Domingo": "Domingo",
+    }
+    meses = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+             "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+
+    data_formatada = f"{dias_extenso[dia_semana_hoje]}, {hoje_data.day} de {meses[hoje_data.month]} de {hoje_data.year}"
+    
+    return data_formatada
+
+@login_required
+>>>>>>> Stashed changes
 def index(request):
     # Obtendo todas as atividades do banco de dados e os vinculos
     atividades  = Atividade.objects.prefetch_related('vinculos_dias').all()
@@ -312,7 +337,6 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
 
 # View para as metas
-@login_required
 def metas(request):
     # Se for criar uma meta nova
     if request.method == "POST":
