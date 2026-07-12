@@ -1,81 +1,63 @@
-<<<<<<< Updated upstream
 <!DOCTYPE html>
 <html lang="pt-BR">
   
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Goal Tracer</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Goal Tracer</title>
 
-		<!-- Carregando o favicon -->
-		{% load static %}
-		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
-		<script src="{% static 'home/js/utils.js' %}"></script>
-		<script src="https://cdn.tailwindcss.com"></script>
-	</head>
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+        <script src="https://cdn.tailwindcss.com"></script>
 
-	<body>
-		<!-- Agrupamento dos links da pagina  -->
-		<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
-			<!-- Div da logo e o titulo -->
-			<div class="flex">
-				{% load static %}
-				<img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
-				<h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
-			</div>
-			<!-- Div dos links -->
-			<div class="flex items-center gap-6 text-gray-500 text-sm">
-				<a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
-				<a href="{% url 'calendario' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Calendário</a>
-				<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
-				<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
-				<a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
-				<a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
-			</div>
-		</nav>
+        <!-- FullCalendar -->
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
 
-		<p>...</p>
-	</body>
+        <style>
+            .fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; text-transform: capitalize; }
+            .fc-toolbar { background: linear-gradient(to right, #c7deff, rgb(167, 186, 255)); padding: 6px; }
+            /* .fc-toolbar-title { color: white !important; } */
+            .fc-button { background-color: #eff6ff00 !important; color: #000000 !important; border: none !important; box-shadow: none !important; }
+            .fc-button:hover { background-color: #dbeafe !important; }
+            .fc-daygrid-day { cursor: pointer; }
+            .fc-daygrid-day:hover { background-color: #f8fafc; }
+            .fc-day-today { background-color: #eff6ff !important; }
+            .fc-event { border: none !important; padding: 1px 4px; font-size: 0.75rem; border-radius: 4px; }
+            .fc-event-title { font-weight: 500; }
+            .fc-daygrid-event-dot { display: none; }
+            .fc-daygrid-day-top { width: 100%; }
+            .fc-daygrid-day-number { width: 100%; }
+        </style>
+    </head>
+
+    <body>
+        <!-- Agrupamento dos links da pagina  -->
+        <nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
+            <!-- Div da logo e o titulo -->
+            <div class="flex">
+                <img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
+                <h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
+            </div>
+            <!-- Div dos links -->
+            <div class="flex items-center gap-6 text-gray-500 text-sm">
+                <a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
+                <a href="{% url 'calendario' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Calendário</a>
+                <a href="{% url 'index' %}" class="text-gray-800">Semana</a>
+                <a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
+                <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
+                <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
+            </div>
+        </nav>
+
+        <!-- Calendário -->
+        <div class="p-8 max-w-4xl mx-auto">
+            <div id="calendario" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6"></div>
+        </div>
+
+        <!-- Scripts (ordem importa) -->
+        <script src="{% static 'home/js/utils.js' %}"></script>
+        <script src="{% static 'home/js/calendario.js' %}"></script>
+    </body>
 
 </html>
-=======
-{% extends "home/base.html" %}
-{% load static %}
-
-{% block title %}Goal Tracer - Calendário{% endblock %}
-
-{% block nav_calendario %}bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold{% endblock %}
-
-{% block extra_head %}
-	<!-- FullCalendar -->
-	<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-	<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
-
-	<style>
-		.fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; text-transform: capitalize; }
-		.fc-toolbar { background: linear-gradient(to right, #c7deff, rgb(167, 186, 255)); padding: 6px; }
-		.fc-button { background-color: #eff6ff00 !important; color: #000000 !important; border: none !important; box-shadow: none !important; }
-		.fc-button:hover { background-color: #dbeafe !important; }
-		.fc-daygrid-day { cursor: pointer; }
-		.fc-daygrid-day:hover { background-color: #f8fafc; }
-		.fc-day-today { background-color: #eff6ff !important; }
-		.fc-event { border: none !important; padding: 1px 4px; font-size: 0.75rem; border-radius: 4px; }
-		.fc-event-title { font-weight: 500; }
-		.fc-daygrid-event-dot { display: none; }
-		.fc-daygrid-day-top { width: 100%; }
-		.fc-daygrid-day-number { width: 100%; }
-	</style>
-{% endblock %}
-
-{% block content %}
-	<div class="p-8 max-w-4xl mx-auto">
-		<div id="calendario" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6"></div>
-	</div>
-{% endblock %}
-
-{% block scripts %}
-	<!-- Scripts (ordem importa) -->
-	<script src="{% static 'home/js/utils.js' %}"></script>
-	<script src="{% static 'home/js/calendario.js' %}"></script>
-{% endblock %}
->>>>>>> Stashed changes
