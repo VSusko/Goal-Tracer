@@ -1,8 +1,18 @@
 from django.db import models
+from django.contrib.auth.models import User
 
    
 class Atividade(models.Model):
-    nome = models.CharField(max_length=200, unique=True) # unique=True evita nomes duplicados
+    nome = models.CharField(max_length=200) # unique=True evita nomes duplicados
+    # Cada atividade pertence a um usuário. Se o usuário for deletado, as atividades dele somem junto
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name="atividades")
+    
+    
+    class Meta:
+        # Essa "Meta" aqui é só a convenção do Django pra configurar o model, 
+        # não tem nada a ver com o model "Meta" (de metas) lá embaixo. Coincidência de nome mesmo.
+        unique_together = ('nome', 'usuario')  # nome pode repetir ENTRE usuários, mas nao pro MESMO usuario
+
 
     def __str__(self):
         return self.nome

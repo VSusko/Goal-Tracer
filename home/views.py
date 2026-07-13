@@ -1,5 +1,3 @@
-from multiprocessing import context
-
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db.models import Sum, Value
@@ -9,9 +7,10 @@ from .models import Atividade, Meta, AtividadeDoDia
 import json
 from collections import defaultdict
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 
 
-# Lista de dias da semana, usada para manter a ordem correta na exibicao dos dados
+# Lista de DIAS da semana, usada para manter a ordem correta na exibicao dos dados
 DIAS = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
 
 # Funcao auxiliar que retorna a data de hoje formatada, usada em varias views
@@ -35,14 +34,14 @@ def data_formatada():
     
     return data_formatada
 
-
+@login_required
 def index(request):
     # Obtendo todas as atividades do banco de dados e os vinculos
-    atividades  = Atividade.objects.prefetch_related('vinculos_dias').all()
-    vinculos    = AtividadeDoDia.objects.all()
+    atividades  = Atividade.objects.filter(usuario=request.user).prefetch_related('vinculos_dias')
+    vinculos    = AtividadeDoDia.objects.filter(atividade__usuario=request.user)
     
-    # Obtendo os dias que possuem alguma atividade
-    dias_usados = AtividadeDoDia.objects.values_list("dia_semana",flat=True).distinct()
+    # Obtendo os DIAS que possuem alguma atividade
+    dias_usados = AtividadeDoDia.objects.filter(atividade__usuario=request.user).values_list("dia_semana",flat=True).distinct()
     dias_vazios = list(set(DIAS)  - set(dias_usados))
     
     # Criando um dicionario para colocar a soma total diaria de cada atividade
@@ -51,14 +50,14 @@ def index(request):
         # Cada posicao do dicionario é um dia da semana. Somamos nesse dia a quantidade de horas investidas na atividade da iteracao
         soma_por_dia[atividade.dia_semana] += atividade.horas_feitas
       
-    # Criando uma lista que contem, na mesma ordem da lista "DIAS", o total de horas trabalhadas em cada um dos dias
+    # Criando uma lista que contem, na mesma ordem da lista "DIAS", o total de horas trabalhadas em cada um dos DIAS
     total_horas_por_dia = [soma_por_dia[dia] for dia in DIAS]
     
     # dias_horas é a variavel que possui uma lista de tuplas, em que cada elemento é um dia seguido 
     # das horas trabalhadas nele (somando todas as atividades)
     dias_horas = zip(DIAS, total_horas_por_dia)
     
-    metas, _ = gerar_estatisticas_metas()
+    metas, _ = gerar_estatisticas_metas(request.user)
 
     context = {
         "data_formatada": data_formatada(),
@@ -73,6 +72,9 @@ def index(request):
 
 # View para criar/deletar atividade
 def gerenciar_atividade(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Não autenticado"}, status=401)
+
     data = json.loads(request.body)
 
     # Se for deletar atividades
@@ -80,8 +82,8 @@ def gerenciar_atividade(request):
         # Obtendo o id da atividade passado via json
         atividade_id = data.get("atividade_id")
         try:
-            # Obtem o objeto da atividade
-            atividade = Atividade.objects.get(id=atividade_id)
+            # Obtem o objeto da atividade (so se for do usuario logado)
+            atividade = Atividade.objects.get(id=atividade_id, usuario=request.user)
             print(f'Atividade deletada: {atividade.nome}')
             atividade.delete()
             return JsonResponse({"status": "ok"}, status=200)
@@ -95,6 +97,7 @@ def gerenciar_atividade(request):
             # Cria uma atividade nova e retorna o id
             atividade = Atividade.objects.create(
                 nome=data["nome_atividade"],
+                usuario=request.user,
             )
             return JsonResponse({"id": atividade.id}, status=200)
         except Exception as e:
@@ -104,28 +107,29 @@ def gerenciar_atividade(request):
     return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 
 # View que retorna a pagina de atividades
+@login_required
 def atividades(request):
     # Obtendo todas as atividades do banco de dados
-    atividades = Atividade.objects.all()
+    atividades = Atividade.objects.filter(usuario=request.user)
     
     # Retorna as atividades e a pagina html
     return render(request, "home/atividades.html", {"atividades":atividades})
 
 # Funcao auxiliar para obter as informacoes importantes da atividade vinculada ao dia da semana
-def gerar_dados_atividade(dia, atividade_nome, id=None, operacao=None):
+def gerar_dados_atividade(dia, atividade_nome, usuario, id=None, operacao=None):
     # Obtendo a soma diaria (usado para atualizar total de horas do dia)
-    consulta_soma_diaria = AtividadeDoDia.objects.filter(dia_semana=dia).aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
+    consulta_soma_diaria = AtividadeDoDia.objects.filter(dia_semana=dia, atividade__usuario=usuario).aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
     # Obtendo o valor retornado dentro do dicionario
     soma_diaria = consulta_soma_diaria["total_horas"]
 
     # Obtendo as horas investidas na meta da atividade deletada
-    consulta_horas_da_meta = AtividadeDoDia.objects.filter(atividade__nome=atividade_nome).aggregate(total_horas=Sum('horas_feitas'))
+    consulta_horas_da_meta = AtividadeDoDia.objects.filter(atividade__nome=atividade_nome, atividade__usuario=usuario).aggregate(total_horas=Sum('horas_feitas'))
     # Obtendo o valor retornado dentro do dicionario
     horas_da_meta = consulta_horas_da_meta["total_horas"] or 0
     
     # Tenta buscar uma meta existente vinculada à atividade deletada. Se nao achar, retorna None
     try:
-        meta = Meta.objects.get(atividade__nome=atividade_nome)
+        meta = Meta.objects.get(atividade__nome=atividade_nome, atividade__usuario=usuario)
     except Meta.DoesNotExist:
         meta = None
     
@@ -155,18 +159,21 @@ def gerar_dados_atividade(dia, atividade_nome, id=None, operacao=None):
 
 # View para atualizar as horas feitas de uma atividade vinculada a um dia da semana
 def atualizar_horas(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Não autenticado"}, status=401)
+
     data = json.loads(request.body)
     if request.method == "POST":
         try:
             novo_valor = data["horas_feitas"]
 
-            vinculo = AtividadeDoDia.objects.get(id=data["vinculo_id"])
+            vinculo = AtividadeDoDia.objects.get(id=data["vinculo_id"], atividade__usuario=request.user)
             vinculo.horas_feitas = novo_valor
             vinculo.save()
 
             print(f'Atualizado horas da atividade {vinculo.atividade.nome} no dia {vinculo.dia_semana} para {novo_valor}')
     
-            context = gerar_dados_atividade(vinculo.dia_semana, vinculo.atividade.nome)
+            context = gerar_dados_atividade(vinculo.dia_semana, vinculo.atividade.nome, request.user)
             return JsonResponse(context, status=200)
         except Exception as e:
             print(f'erro? {e}')
@@ -174,6 +181,9 @@ def atualizar_horas(request):
 
 # View para associar uma atividade a um dia da semana
 def associar_atividade(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Não autenticado"}, status=401)
+
     # Obtem os dados passados pelo front
     data = json.loads(request.body)
 
@@ -181,7 +191,7 @@ def associar_atividade(request):
     if request.method == "POST":
         try:
             print(f'Atividade a ser associada: {data["nome_atividade"]}')
-            atividade = Atividade.objects.get(nome=data["nome_atividade"])
+            atividade = Atividade.objects.get(nome=data["nome_atividade"], usuario=request.user)
             
             # Operacao de associar atividade
             novo_vinculo = AtividadeDoDia.objects.create(
@@ -191,7 +201,7 @@ def associar_atividade(request):
             )
                       
             # Obtem o contexto pela funcao auxiliar
-            context = gerar_dados_atividade(data["dia_semana"], atividade.nome, novo_vinculo.id, operacao="adicionar")
+            context = gerar_dados_atividade(data["dia_semana"], atividade.nome, request.user, novo_vinculo.id, operacao="adicionar")
             
             return JsonResponse(context, status=200)
         except Exception as e:
@@ -205,7 +215,7 @@ def associar_atividade(request):
         
         try:
             # Obtendo o objeto da atividade
-            vinculo = AtividadeDoDia.objects.get(id=id_vinculo)
+            vinculo = AtividadeDoDia.objects.get(id=id_vinculo, atividade__usuario=request.user)
             atividade_nome = vinculo.atividade.nome
             dia = vinculo.dia_semana
             
@@ -213,7 +223,7 @@ def associar_atividade(request):
             vinculo.delete()
             
             # Obtem o contexto pela funcao auxiliar
-            context = gerar_dados_atividade(dia, atividade_nome)
+            context = gerar_dados_atividade(dia, atividade_nome, request.user)
             return JsonResponse(context, status=200)
 
         except Exception as e:
@@ -223,11 +233,11 @@ def associar_atividade(request):
     return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 
 # Funcao auxiliar para gerar estatisticas das metas. O parametro nome_atividade é opcional, e caso seja passado, a funcao retorna 
-def gerar_estatisticas_metas(nome_atividade=None):
+def gerar_estatisticas_metas(usuario, nome_atividade=None):
     # Cria uma variavel para a nova meta, caso seja necessario usá-la no retorno da funcao
     novameta = None
     # Itera sobre as metas, calculando o total de horas trabalhadas em todas as atividades e obtendo o percentual com relacao a meta estabelecida
-    metas = Meta.objects.all()
+    metas = Meta.objects.filter(atividade__usuario=usuario)
     for meta in metas:
         # Realiza uma consulta que retorna a soma de todas as horas feitas na atividade vinculada à meta
         consulta_HorasMeta_semana = AtividadeDoDia.objects.filter(atividade_id=meta.atividade_id).aggregate(total_horas=Sum('horas_feitas'))
@@ -246,9 +256,9 @@ def gerar_estatisticas_metas(nome_atividade=None):
     return (metas, novameta)
 
 # Funcao auxiliar para obter as informacoes importantes da meta
-def gerar_dados_metas(nome_atividade=None, operacao=None):        
+def gerar_dados_metas(usuario, nome_atividade=None, operacao=None):        
     # Gera as estatisticas das metas, e caso seja passada uma atividade, tambem retorna a meta vinculada a ela
-    metas, novameta = gerar_estatisticas_metas(nome_atividade=nome_atividade)
+    metas, novameta = gerar_estatisticas_metas(usuario, nome_atividade=nome_atividade)
     
     # Calculo das metas atingidas para a semana
     metas_atingidas = sum(1 for meta in metas if meta.horas_semana >= meta.meta_horas)
@@ -290,8 +300,14 @@ def gerar_dados_metas(nome_atividade=None, operacao=None):
 
 
 # View para as metas
-@login_required
 def metas(request):
+    # Como essa view responde tanto pagina (GET) quanto JSON (POST), tratamos
+    # o "nao logado" de dois jeitos diferentes ao inves de usar @login_required
+    if not request.user.is_authenticated:
+        if request.method == "POST":
+            return JsonResponse({"erro": "Não autenticado"}, status=401)
+        return redirect('login')
+    
     # Se for criar uma meta nova
     if request.method == "POST":
         try:
@@ -299,20 +315,20 @@ def metas(request):
             
             # Se a operacao for de adição, obtem a atividade associada e cria uma nova meta. Retorna os dados para atualizar o front
             if data["operacao"] == "adicionar":
-                atividade = Atividade.objects.get(nome=data["nome_atividade"])
+                atividade = Atividade.objects.get(nome=data["nome_atividade"], usuario=request.user)
                 Meta.objects.create(
                     atividade = atividade,
                     meta_horas= float(data["meta_horas"])
                 )
                 # Obtem o contexto
-                context = gerar_dados_metas(nome_atividade=atividade.nome, operacao="adicionar")
+                context = gerar_dados_metas(request.user, nome_atividade=atividade.nome, operacao="adicionar")
                 return JsonResponse(context, status=200)
             
                 # Se a operacao for de deleção, obtem a meta com o nome da atividade, deleta e retorna os dados para atualizar o front
             if data["operacao"] == "deletar":
-                meta = Meta.objects.get(atividade__nome=data["nome_atividade"])
+                meta = Meta.objects.get(atividade__nome=data["nome_atividade"], atividade__usuario=request.user)
                 meta.delete()
-                context = gerar_dados_metas(operacao="deletar")
+                context = gerar_dados_metas(request.user, operacao="deletar")
                 return JsonResponse(context, status=200)
         
         # Caso houve alguma exception, retorna o erro para o front
@@ -321,35 +337,35 @@ def metas(request):
             return JsonResponse({"erro": str(e)}, status=400)
 
     # Caso seja apenas para carregar a pagina, gera o contexto com todas as metas e retorna a pagina
-    context = gerar_dados_metas()
+    context = gerar_dados_metas(request.user)
     return render(request, "home/metas.html", context)
     
 
 # View para a exibicao dos relatorios
+@login_required
 def relatorios(request):
-    soma_horas_semana = AtividadeDoDia.objects.aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
+    soma_horas_semana = AtividadeDoDia.objects.filter(atividade__usuario=request.user).aggregate(total_horas=Coalesce(Sum('horas_feitas'), Value(0.0)))
     
-    dias_ativos = AtividadeDoDia.objects.values('dia_semana').distinct().count()
+    dias_ativos = AtividadeDoDia.objects.filter(atividade__usuario=request.user).values('dia_semana').distinct().count()
     
-    soma_metas = Meta.objects.aggregate(total_horas=Coalesce(Sum('meta_horas'), Value(0.0)))
+    soma_metas = Meta.objects.filter(atividade__usuario=request.user).aggregate(total_horas=Coalesce(Sum('meta_horas'), Value(0.0)))
     
     try:    
         eficiencia = (soma_horas_semana["total_horas"]/soma_metas["total_horas"]) * 100
     except ZeroDivisionError:
         eficiencia = 0
         
-    horas_por_dia_consulta = AtividadeDoDia.objects.values('dia_semana').annotate(
+    horas_por_dia_consulta = AtividadeDoDia.objects.filter(atividade__usuario=request.user).values('dia_semana').annotate(
         total=Coalesce(Sum('horas_feitas'), Value(0.0))
     )
     horas_map = {item['dia_semana']: item['total'] for item in horas_por_dia_consulta}
 
-    # Garante que todos os dias aparecem, mesmo os sem atividade
+    # Garante que todos os DIAS aparecem, mesmo os sem atividade
     horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
     top5 = AtividadeDoDia.objects.values('atividade__nome') \
                                        .annotate(total_horas=Sum('horas_feitas')) \
                                        .filter(total_horas__gt=0) \
-                                       .order_by('-total_horas')[:5]
 
     context =  {
         "data_formatada": data_formatada(),
@@ -364,7 +380,7 @@ def relatorios(request):
         
     return render(request,"home/relatorios.html", context)
 
-
+@login_required
 def hoje(request):
     hoje_data = timezone.localdate()
     dia_semana_hoje = DIAS[hoje_data.weekday()]
@@ -377,7 +393,7 @@ def hoje(request):
     total_concluidas = 0
 
     for vinculo in vinculos_hoje:
-        # Quantos dias da semana essa atividade aparece (pra dividir a meta semanal entre eles)
+        # Quantos DIAS da semana essa atividade aparece (pra dividir a meta semanal entre eles)
         dias_cadastrados = AtividadeDoDia.objects.filter(atividade=vinculo.atividade).count()
 
         # Busca a meta semanal da atividade, se existir
@@ -429,6 +445,7 @@ def hoje(request):
 
 
 # View nova, pra atualizar as horas feitas de uma atividade específica hoje
+@login_required
 def atualizar_horas_hoje(request):
     # print(request.POST)
     if request.method == "POST":
@@ -436,7 +453,7 @@ def atualizar_horas_hoje(request):
         horas_feitas = request.POST.get("horas_feitas")
 
         try:
-            vinculo = AtividadeDoDia.objects.get(id=vinculo_id)
+            vinculo = AtividadeDoDia.objects.get(id=vinculo_id, atividade__usuario=request.user)
             vinculo.horas_feitas = float(horas_feitas)
             vinculo.save()
         except AtividadeDoDia.DoesNotExist:
@@ -446,5 +463,19 @@ def atualizar_horas_hoje(request):
 
 
 # View para a pagina do dia de hoje
+@login_required
 def calendario(request):
     return render(request, "home/calendario.html")
+
+
+
+def cadastro(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('login')
+    else:
+        form = UserCreationForm()
+
+    return render(request, "home/cadastro.html", {"form": form})

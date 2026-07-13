@@ -1,19 +1,19 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   
-	<head>
-		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Goal Tracer</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Goal Tracer</title>
 
-		<!-- Carregando o favicon -->
-		{% load static %}
-		<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+        <!-- Carregando o favicon -->
+        {% load static %}
+        <link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
         <script src="{% static 'home/js/utils.js' %}"></script>
-		<script src="https://cdn.tailwindcss.com"></script>
-	</head>
+        <script src="https://cdn.tailwindcss.com"></script>
+    </head>
 
-	<body>
+    <body>
         <div>
             <!-- Agrupamento dos links da pagina  -->
             <nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
@@ -23,16 +23,21 @@
                     <img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
                     <h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
                 </div>
-			<!-- Div dos links -->
-			<div class="flex items-center gap-6 text-gray-500 text-sm">
-				<a href="{% url 'atividades' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Atividades</a>
-				<a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
-				<a href="{% url 'index' %}" class="text-gray-800">Semana</a>
-				<a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
-				<a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
-				<a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
-			</div>
-		    </nav>
+            <!-- Div dos links -->
+            <div class="flex items-center gap-6 text-gray-500 text-sm">
+                <a href="{% url 'atividades' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Atividades</a>
+                <a href="{% url 'calendario' %}" class="text-gray-800">Calendário</a>
+                <a href="{% url 'index' %}" class="text-gray-800">Semana</a>
+                <a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
+                <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
+                <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
+
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="text-gray-800">Sair</button>
+                </form>
+            </div>
+            </nav>
         
             <div class="grid grid-cols-2 gap-4 m-6">
                 <!-- Div do planejamento semanal -->
@@ -55,33 +60,33 @@
                         <div class="flex ml-8 gap-3 ml-auto">
                             <button class="bg-blue-600 text-white rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out w-full" id="botao_adicionar">Adicionar atividade</button>
                         </div>
-                    </div>	
+                    </div>    
                 </div>
-		    </div>
+            </div>
 
-			<h5 class="text-2xl font-bold ml-10">Atividades Cadastradas</h5>
+            <h5 class="text-2xl font-bold ml-10">Atividades Cadastradas</h5>
 
             <!-- Div para todas as atividades -->
             <div id="div_atividades" class="p-5 flex flex-col items-center gap-3">
                 {% for atividade in atividades %}
-				<!-- Listando as atividades -->
-				<div id="atividade_{{ atividade.id }}" class="flex bg-gradient-to-r from-red-100 to-red-200 text-black rounded-lg pl-5 pr-4 py-4 w-[75vw] shadow-lg">
-					<p class="text-lg">{{ atividade.nome }}</p>
-					<!-- Div para deletar -->
-					<div id="botao_deletar_{{ atividade.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 py-1 ml-auto">
+                <!-- Listando as atividades -->
+                <div id="atividade_{{ atividade.id }}" class="flex bg-gradient-to-r from-red-100 to-red-200 text-black rounded-lg pl-5 pr-4 py-4 w-[75vw] shadow-lg">
+                    <p class="text-lg">{{ atividade.nome }}</p>
+                    <!-- Div para deletar -->
+                    <div id="botao_deletar_{{ atividade.id }}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 py-1 ml-auto">
                         <button>Deletar</button>
-					</div>
-					
-				</div>
+                    </div>
+                    
+                </div>
                 {% empty %}
                 <p class="text-gray-500 mt-5">Nenhuma atividade planejada.</p>
-			    {% endfor %}
+                {% endfor %}
             </div>
             
 
         </div>
 
         <script src="{% static 'home/js/atividades.js' %}"></script>
-	</body>
+    </body>
 
 </html>

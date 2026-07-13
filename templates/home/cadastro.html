@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Goal Tracer - Cadastro</title>
+	<script src="https://cdn.tailwindcss.com"></script>
+	{% load static %}
+	<link rel="icon" type="image/png" href="{% static 'img/favicon.svg' %}" class="rounded-lg">
+</head>
+
+<body class="bg-gray-50 h-screen flex items-center justify-center">
+
+	<div class="bg-white shadow-xl rounded-xl p-10 w-96">
+		<div class="flex flex-col items-center mb-6">
+			<img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto mb-2">
+			<h1 class="text-2xl font-bold">Criar Conta</h1>
+		</div>
+
+		<form method="post">
+			{% csrf_token %}
+
+			<div class="mb-4">
+				<label class="block text-gray-600 text-sm mb-1">Usuário</label>
+				<input type="text" name="username" class="border-2 rounded-lg bg-gray-50 p-2 w-full" required>
+				{% for erro in form.username.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ erro }}</p>
+				{% endfor %}
+			</div>
+
+			<div class="mb-4">
+				<label class="block text-gray-600 text-sm mb-1">Senha</label>
+				<input type="password" name="password1" class="border-2 rounded-lg bg-gray-50 p-2 w-full" required>
+				{% for erro in form.password1.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ erro }}</p>
+				{% endfor %}
+			</div>
+
+			<div class="mb-6">
+				<label class="block text-gray-600 text-sm mb-1">Confirmar senha</label>
+				<input type="password" name="password2" class="border-2 rounded-lg bg-gray-50 p-2 w-full" required>
+				{% for erro in form.password2.errors %}
+					<p class="text-red-500 text-xs mt-1">{{ erro }}</p>
+				{% endfor %}
+			</div>
+
+			<button type="submit" class="bg-blue-600 text-white rounded-xl px-5 py-2 w-full hover:scale-105 duration-200 ease-in-out">Cadastrar</button>
+		</form>
+
+		<p class="text-center text-sm text-gray-500 mt-4">
+			Já tem conta? <a href="{% url 'login' %}" class="text-blue-600 font-bold">Entrar</a>
+		</p>
+	</div>
+
+</body>
+</html>

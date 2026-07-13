@@ -167,6 +167,10 @@ document.addEventListener("input", (event) => {
     if (!input.dataset.vinculo) return;
 
     const vinculo_id = input.dataset.vinculo;
+
+    // Ignora inputs que nao sao de um vinculo real (ex: caixa_horas, caixa_meta_semanal)
+    if (isNaN(Number(vinculo_id)) || vinculo_id === "") return;
+
     const novo_valor = input.value;
 
     // Cancela o timer anterior, se existir
