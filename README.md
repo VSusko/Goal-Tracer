@@ -107,7 +107,6 @@ ou
 ```bash
 make leave
 ```
-
 ## 📘 Manual do sistema
 
 ### 1. 🔑 Faça login
