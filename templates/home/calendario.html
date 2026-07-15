@@ -60,38 +60,6 @@
         <script src="{% static 'home/js/calendario.js' %}"></script>
     </body>
 
-    <body>
-        <!-- Agrupamento dos links da pagina  -->
-        <nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
-            <!-- Div da logo e o titulo -->
-            <div class="flex">
-                <img src="{% static 'img/small-logo.png' %}" alt="Logo" class="w-[60px] h-auto">
-                <h1 class="text-2xl font-bold p-2">Goal Tracer</h1>
-            </div>
-            <!-- Div dos links -->
-            <div class="flex items-center gap-6 text-gray-500 text-sm">
-                <a href="{% url 'atividades' %}" class="text-gray-800">Atividades</a>
-                <a href="{% url 'calendario' %}" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-full font-bold">Calendário</a>
-                <a href="{% url 'index' %}" class="text-gray-800">Semana</a>
-                <a href="{% url 'hoje' %}" class="text-gray-800">Hoje</a>
-                <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
-                <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
-
-                <form method="post" action="{% url 'logout' %}" onsubmit="return confirm('Tem certeza que deseja sair?');">
-                    {% csrf_token %}
-                    <button type="submit" class="bg-red-100 text-red-600 px-4 py-2 rounded-full text-gray-800">Sair</button>
-                </form>
-            </div>
-        </nav>
-
-        <!-- Calendário -->
-        <div class="p-8 max-w-4xl mx-auto">
-            <div id="calendario" class="bg-white rounded-xl border border-gray-200 shadow-sm p-6"></div>
-        </div>
-
-        <!-- Scripts (ordem importa) -->
-        <script src="{% static 'home/js/utils.js' %}"></script>
-        <script src="{% static 'home/js/calendario.js' %}"></script>
-    </body>
+    
 
 </html>

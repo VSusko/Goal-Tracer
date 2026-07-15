@@ -120,7 +120,7 @@ No menu, acesse a área de **Atividades** e crie uma nova atividade (ex: "Estuda
 
 ### 3. 🎯 Defina suas metas
 
-Na área de **Metas**, escolha uma atividade já cadastrada e defina quantas horas semanais você deseja dedicar a ela. Alternativamente, é possivel adicionar a meta assim que a atividade é vinculada a um dia da semana. Vale ressaltar que uma meta não pode ser adicionada duas vezes a uma atividade.
+Na área de **Metas**, escolha uma atividade já cadastrada e defina quantas horas semanais você deseja dedicar a ela. Vale ressaltar que uma meta não pode ser adicionada duas vezes a uma atividade.
 
 ### 4. ✅ Acompanhe o dia a dia
 

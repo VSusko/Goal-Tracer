@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 from django.db.models import Sum, Value
@@ -363,9 +364,11 @@ def relatorios(request):
     # Garante que todos os DIAS aparecem, mesmo os sem atividade
     horas_por_dia = [horas_map.get(dia, 0.0) for dia in DIAS]
     
-    top5 = AtividadeDoDia.objects.values('atividade__nome') \
-                                       .annotate(total_horas=Sum('horas_feitas')) \
-                                       .filter(total_horas__gt=0) \
+    top5 = AtividadeDoDia.objects.filter(atividade__usuario=request.user) \
+                              .values('atividade__nome') \
+                              .annotate(total_horas=Sum('horas_feitas')) \
+                              .filter(total_horas__gt=0) \
+                              .order_by('-total_horas')[:5]
 
     context =  {
         "data_formatada": data_formatada(),
@@ -385,7 +388,10 @@ def hoje(request):
     hoje_data = timezone.localdate()
     dia_semana_hoje = DIAS[hoje_data.weekday()]
     
-    vinculos_hoje = AtividadeDoDia.objects.filter(dia_semana=dia_semana_hoje).select_related('atividade')
+    vinculos_hoje = AtividadeDoDia.objects.filter(
+        dia_semana=dia_semana_hoje,
+        atividade__usuario=request.user  
+    ).select_related('atividade')
 
     atividades_hoje = []
     soma_horas_feitas = 0.0
@@ -394,10 +400,16 @@ def hoje(request):
 
     for vinculo in vinculos_hoje:
         # Quantos DIAS da semana essa atividade aparece (pra dividir a meta semanal entre eles)
-        dias_cadastrados = AtividadeDoDia.objects.filter(atividade=vinculo.atividade).count()
+        dias_cadastrados = AtividadeDoDia.objects.filter(
+            atividade=vinculo.atividade,
+            atividade__usuario=request.user
+        ).count()
 
         # Busca a meta semanal da atividade, se existir
-        meta = Meta.objects.filter(atividade=vinculo.atividade).first()
+        meta = Meta.objects.filter(
+            atividade=vinculo.atividade,
+            atividade__usuario=request.user  
+        ).first()
 
         if meta and dias_cadastrados > 0:
             meta_diaria = meta.meta_horas / dias_cadastrados
@@ -474,6 +486,7 @@ def cadastro(request):
         form = UserCreationForm(request.POST)
         if form.is_valid():
             form.save()
+            messages.success(request, "Conta criada com sucesso! Faça login para continuar.")
             return redirect('login')
     else:
         form = UserCreationForm()

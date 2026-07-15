@@ -84,9 +84,6 @@
 					<!-- Caixa para o usuario depositar as horas trabalhadas na atividade -->
 					<input type="number" id="caixa_horas" placeholder="Horas trabalhadas" min="0" max="24" step="0.5" class="flex-1 min-w-[120px] border-2 rounded-lg bg-gray-50 p-3">
 
-					<!-- Caixa para meta semanal (opcional) -->
-					<input type="number" id="caixa_meta_semanal" placeholder="Meta semanal (opcional)" min="0" max="168" step="0.5" class="flex-1 min-w-[160px] border-2 rounded-lg bg-gray-50 p-3">
-
 					<div class="flex gap-3 flex-wrap">
 						<button class="bg-blue-600 text-white rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out whitespace-nowrap" id="botao_adicionar">Adicionar atividade</button>
 						<button class="bg-gray-300 text-black rounded-xl px-5 py-3 hover:scale-110 duration-200 ease-in-out" id="botao_adicionar_cancelar">Cancelar</button>
@@ -98,7 +95,7 @@
 		<!-- Div para as metas -->
 		<div class="flex gap-4 ml-10">
 			{% for meta in metas %}
-				<div class="w-48 flex-shrink-0 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-gray-300 shadow-lg rounded-lg p-3" data-atividade="{{ meta.atividade.nome }}>
+				<div class="w-48 flex-shrink-0 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-gray-300 shadow-lg rounded-lg p-3" data-atividade="{{ meta.atividade.nome }}">
 						<p class="text-white text-lg font-bold mb-2">🎯 {{ meta.atividade.nome }}</p>
 						<span id="horas_meta_{{ meta.id }}" class="text-gray-500 ml-auto" >{{ meta.horas_semana }}h</span>
 						<span class="text-gray-500 ml-auto" >/ {{ meta.meta_horas }}h</span>

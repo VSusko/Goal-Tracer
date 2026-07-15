@@ -214,7 +214,7 @@ document.addEventListener("input", (event) => {
 
     const vinculo_id = input.dataset.vinculo;
 
-    // Ignora inputs que nao sao de um vinculo real (ex: caixa_horas, caixa_meta_semanal)
+    // Ignora inputs que nao sao de um vinculo real (ex: caixa_horas)
     if (isNaN(Number(vinculo_id)) || vinculo_id === "") return;
 
     const novo_valor = input.value;
