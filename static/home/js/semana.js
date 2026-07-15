@@ -1,3 +1,49 @@
+// Paleta de cores (pares de classes Tailwind pra gradiente)
+const CORES_ATIVIDADE = [
+    ["from-red-300", "to-red-400"],
+    ["from-orange-300", "to-orange-400"],
+    ["from-amber-300", "to-amber-400"],
+    ["from-yellow-300", "to-yellow-400"],
+    ["from-lime-300", "to-lime-400"],
+    ["from-green-300", "to-green-400"],
+    ["from-emerald-300", "to-emerald-400"],
+    ["from-teal-300", "to-teal-400"],
+    ["from-cyan-300", "to-cyan-400"],
+    ["from-sky-300", "to-sky-400"],
+    ["from-blue-300", "to-blue-400"],
+    ["from-indigo-300", "to-indigo-400"],
+    ["from-violet-300", "to-violet-400"],
+    ["from-purple-300", "to-purple-400"],
+    ["from-fuchsia-300", "to-fuchsia-400"],
+    ["from-pink-300", "to-pink-400"],
+    ["from-rose-300", "to-rose-400"],
+];
+
+// Hash simples e determinístico a partir do nome da atividade
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = (hash * 31 + str.charCodeAt(i)) >>> 0; // >>> 0 mantém unsigned
+    }
+    return hash;
+}
+
+function corAtividade(nome) {
+    const indice = hashString(nome) % CORES_ATIVIDADE.length;
+    return CORES_ATIVIDADE[indice]; // retorna [from, to]
+}
+
+// Aplica a cor em todos os cards de meta existentes na página
+function aplicarCoresMetas() {
+    document.querySelectorAll("[data-atividade]").forEach((card) => {
+        const nome = card.dataset.atividade;
+        const [de, para] = corAtividade(nome);
+        card.classList.add(de, para);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", aplicarCoresMetas);
+
 // Botao nova atividade
 const botaoNovaAtividade = document.getElementById("botao_nova_atividade");
 const caixa_nova_atividade = document.getElementById("caixa_nova_atividade");

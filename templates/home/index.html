@@ -98,7 +98,7 @@
 		<!-- Div para as metas -->
 		<div class="flex gap-4 ml-10">
 			{% for meta in metas %}
-				<div class="w-48 flex-shrink-0 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-gray-300 shadow-lg rounded-lg p-3">
+				<div class="w-48 flex-shrink-0 bg-gradient-to-r from-yellow-300 to-yellow-400 border-2 border-gray-300 shadow-lg rounded-lg p-3" data-atividade="{{ meta.atividade.nome }}>
 						<p class="text-white text-lg font-bold mb-2">🎯 {{ meta.atividade.nome }}</p>
 						<span id="horas_meta_{{ meta.id }}" class="text-gray-500 ml-auto" >{{ meta.horas_semana }}h</span>
 						<span class="text-gray-500 ml-auto" >/ {{ meta.meta_horas }}h</span>
