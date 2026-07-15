@@ -54,4 +54,4 @@ class Meta(models.Model):
 
 
     def __str__(self):
-        return self.nome
+        return f"Atividade: {self.atividade.nome} | Meta de horas: {self.meta_horas}"   

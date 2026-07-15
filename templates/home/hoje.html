@@ -13,6 +13,7 @@
 
 <body>
 	{% csrf_token %}
+	{% load l10n %}
 	<nav class="bg-white-600 flex shadow-sm px-6 py-4 justify-between">
 		<div class="flex">
 			{% load static %}
@@ -28,9 +29,9 @@
                 <a href="{% url 'metas' %}" class="text-gray-800">Metas</a>
                 <a href="{% url 'relatorios' %}" class="text-gray-800">Relatórios</a>
 
-                <form method="post" action="{% url 'logout' %}">
+				<form method="post" action="{% url 'logout' %}" onsubmit="return confirm('Tem certeza que deseja sair?');">
                     {% csrf_token %}
-                    <button type="submit" class="text-gray-800">Sair</button>
+                    <button type="submit" class="bg-red-100 text-red-600 px-4 py-2 rounded-full text-gray-800">Sair</button>
                 </form>
             </div>
 	</nav>
@@ -41,7 +42,7 @@
 
 		<!-- Cards -->
 		<div class="grid grid-cols-3 gap-4 mt-6">
-			<div class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg text-white rounded-xl p-5">
+			<div class="bg-gradient-to-r from-red-600 to-red-800 shadow-lg text-white rounded-xl p-5">
 				<p class="text-sm">Tempo Total</p>
 				<p class="text-2xl font-bold mt-2">{{ soma_horas_feitas }}h <span class="text-sm font-normal">/ {{ soma_metas_diarias }}h</span></p>
 				<div class="w-full bg-white/30 h-2 rounded-full mt-3">
@@ -49,12 +50,12 @@
 				</div>
 			</div>
 
-			<div class="bg-gradient-to-r from-green-600 to-green-700 shadow-lg text-white rounded-xl p-5">
+			<div class="bg-gradient-to-r from-pink-600 to-pink-700 shadow-lg text-white rounded-xl p-5">
 				<p class="text-sm">Concluídas</p>
 				<p class="text-2xl font-bold mt-2">{{ total_concluidas }} <span class="text-sm font-normal">/ {{ total_atividades_hoje }}</span></p>
 			</div>
 
-			<div class="bg-gradient-to-r from-purple-600 to-purple-800 shadow-lg text-white rounded-xl p-5">
+			<div class="bg-gradient-to-r from-yellow-400 to-yellow-500 shadow-lg text-white rounded-xl p-5">
 				<p class="text-sm">Progresso</p>
 				<p class="text-2xl font-bold mt-2">{{ progresso_geral }}%</p>
 				<p class="text-sm mt-1">do planejado</p>
@@ -85,7 +86,7 @@
 					<form method="post" action="{% url 'atualizar_horas_hoje' %}" class="flex items-center gap-2">
 						{% csrf_token %}
 						<input type="hidden" name="vinculo_id" value="{{ atividade.id }}">
-						<input type="number" name="horas_feitas" value="{{ atividade.horas_feitas }}" min="0" max="24" step="0.5" class="border-2 rounded-lg bg-gray-50 p-1 w-20">
+						<input type="number" name="horas_feitas" value="{{ atividade.horas_feitas|unlocalize }}" min="0" max="24" step="0.5" class="border-2 rounded-lg bg-gray-50 p-1 w-20">
 						<button type="submit" class="bg-blue-600 text-white rounded-lg px-3 py-2 hover:scale-110 duration-200 ease-in-out">
 							Salvar
 						</button>
