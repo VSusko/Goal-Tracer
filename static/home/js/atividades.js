@@ -46,10 +46,9 @@ botaoAdicionar.addEventListener("click", async() => {
     const novaAtividade = document.createRange().createContextualFragment(`
         <div id="atividade_${data.id}" class="flex bg-gradient-to-r from-red-100 to-red-200 text-black rounded-lg pl-5 pr-4 py-4 w-[75vw] shadow-lg">
             <p class="text-lg">${nome}</p>
-            <!-- Div para deletar -->
-            <div id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 py-1 ml-auto">
-                <button>Deletar</button>
-            </div>
+            <!-- Div para deletar e editar -->
+            <button id="botao_editar_${data.id}" type="submit" class="hover:scale-110 duration-200 ease-in-out ml-auto px-3 py-1 bg-yellow-500 text-white rounded-lg">Editar</button>
+            <button id="botao_deletar_${data.id}" class="hover:scale-110 duration-200 ease-in-out bg-red-500 text-white rounded-lg px-3 py-1 ml-2">Deletar</button>
         </div>
     `);
     // Adicionando a div nova na pagina
@@ -106,3 +105,68 @@ document.addEventListener("click", async (event) => {
     }
 });
 
+const popUpEdicao = document.getElementById("popUpEdicao");
+var nome_editavel = "";
+
+// Botao editar atividade
+document.addEventListener("click", async (event) => {
+    const botao = event.target.closest("[id^='botao_editar_']");
+
+    if (!botao) return; // clique não foi num botão editar
+    
+    // Abre o pop-up de edição
+    popUpEdicao.classList.remove("hidden");
+    
+    const atividade_id = botao.id.split("_").pop();
+
+    nome_editavel = document.getElementById(`atividade_${atividade_id}`).querySelector("p").textContent;
+
+    const caixaEditar = document.getElementById("caixa_editar");
+    caixaEditar.placeholder = nome_editavel;
+});
+
+
+// Fecha ao clicar em cancelar
+document.getElementById("botao_cancelar").addEventListener("click", () => {
+    const caixaEditar = document.getElementById("caixa_editar");
+    caixaEditar.value = "";
+    popUpEdicao.classList.add("hidden");
+});
+
+
+// Ação do confirmar
+document.getElementById("botao_confirmar").addEventListener("click", async () => {
+    
+    const novo_nome = document.getElementById("caixa_editar").value;
+
+    console.log("Editar atividade :", nome_editavel);
+    
+    const response = await fetch("/atividade/gerenciar/", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": window.csrftoken
+        },
+        body: JSON.stringify({
+            atividade_nome: nome_editavel,
+            novo_nome: novo_nome
+        })
+    });
+
+    if (response.status != 200){
+        alert("Erro ao editar atividade. Tente novamente.");
+        return;
+    }
+
+    const data = await response.json();
+
+    // Trocar o nome da atividade para o atualizado
+    const atividadeDiv = document.getElementById(`atividade_${data.id}`);
+    if (atividadeDiv) {
+        atividadeDiv.querySelector("p").textContent = novo_nome;
+    }
+    
+    const caixaEditar = document.getElementById("caixa_editar");
+    caixaEditar.value = "";
+    popUpEdicao.classList.add("hidden");
+});

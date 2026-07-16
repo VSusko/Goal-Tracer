@@ -104,6 +104,18 @@ def gerenciar_atividade(request):
         except Exception as e:
             print(f'erro? {e}')
             return JsonResponse({"erro": str(e)}, status=400)
+    
+    # Se for adicionar atividades
+    if request.method == "PUT":
+        try:
+            # Atualiza uma atividade existente e retorna o id
+            atividade = Atividade.objects.get(nome=data["atividade_nome"], usuario=request.user)
+            atividade.nome = data["novo_nome"]
+            atividade.save()
+            return JsonResponse({"id": atividade.id}, status=200)
+        except Exception as e:
+            print(f'erro? {e}')
+            return JsonResponse({"erro": str(e)}, status=400)
         
     return JsonResponse({"erro": "Metodo nao permitido"}, status=405)
 

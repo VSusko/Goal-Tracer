@@ -88,7 +88,8 @@
                     <p class="mt-2 text-sm text-gray-500">{{ meta.percentual }}% concluído</p>
 
                     <div class="flex mt-4">
-                        <button id="botao_deletar_{{ meta.atividade.nome }}" type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
+                        <button id="botao_editar_{{ meta.atividade.nome }}" type="submit" class="px-3 py-1 bg-yellow-500 text-white rounded">Editar</button>
+                        <button id="botao_deletar_{{ meta.atividade.nome }}" type="submit" class="ml-auto px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
                     </div>
                 </div>
             {% empty %}
