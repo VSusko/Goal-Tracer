@@ -55,7 +55,7 @@ O **Goal Tracer** é um sistema web de acompanhamento de rotina e metas pessoais
 
 ## DER (Documento de Especificação de Requisitos):
 
-[Confira o relatório completo (PDF)](docs/relatorio.pdf)
+[Confira o relatório completo (PDF)](docs/DER_TP_Prog_Web.pdf)
 
 ## 🛠️ Tecnologias
 
