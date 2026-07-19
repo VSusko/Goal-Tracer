@@ -31,18 +31,28 @@ O **Goal Tracer** é um sistema web de acompanhamento de rotina e metas pessoais
 
 > Dessa forma, o sistema permite que o usuário tenha visibilidade clara de quanto tempo está investindo em cada área de sua rotina e o quão perto está de atingir seus objetivos semanais.
 
----
 
-## 👥 Integrantes
+## 👥 Integrantes e contribuições
 
-- Cristiano Augusto Dias Mafuz
-- Victor Emmanuel Susko Guimarães
+#### Victor Susko: https://github.com/VSusko/Goal-Tracer/commits/main/?author=VSusko
+- Interface
+- Calendário (protótipo)
+- Tela da Semana
+- Tela de Relatórios
+- Tela de Atividades
+- Diagrama de Entidade Relacionamento
+#### Cristiano Mafuz: https://github.com/VSusko/Goal-Tracer/commits/main/?author=CristianoMafuz
+- Tela de Metas
+- Tela de Hoje
+- Sistema login + integração com as funcionalidades
+- Documento de Especificação dos Requisitos
+- Projeção da arquitetura do sistema
+- Testes funcionais
 
 ## 🗂️ Quadro Kanban
 
 🔗 [Ver quadro no GitHub Projects](https://github.com/users/VSusko/projects/1/views/1)
 
----
 
 ## 🛠️ Tecnologias
 
@@ -51,7 +61,6 @@ O **Goal Tracer** é um sistema web de acompanhamento de rotina e metas pessoais
 - 🗃️ **Banco de dados:** SQLite
 - 🐳 **Infraestrutura:** Docker e Docker Compose
 
----
 
 ## 🚀 Instruções para execução da aplicação
 
@@ -142,4 +151,36 @@ Na tela de **Relatórios**, acompanhe o progresso geral das suas metas e visuali
 
 Se precisar editar, corrigir ou remover dados diretamente, acesse o painel administrativo em `http://localhost:8000/admin` com um usuário superusuário.
 
----
+## 📏 Arquitetura geral do sistema
+![alt text](docs/imagens/arquitetura-diagrama.jpg)
+
+## 🔀 Diagrama de entidade e relacionamento
+![alt text](docs/imagens/Diagrama-entidade-relacionamento.png)
+
+## 🖥 Telas do sistema
+### Tela de Login
+![alt text](docs/imagens/telas/login.png)
+
+### Tela de Cadastro
+![alt text](docs/imagens/telas/cadastro.png)
+
+### Tela do CRUD de atividades
+![alt text](docs/imagens/telas/atividades.png)
+
+### Tela do Calendário
+![alt text](docs/imagens/telas/calendario.png)
+
+### Tela da Semana
+![alt text](docs/imagens/telas/semana1.png)
+![alt text](docs/imagens/telas/semana2.png)
+![alt text](docs/imagens/telas/semana3.png)
+
+### Tela das Metas
+![alt text](docs/imagens/telas/metas1.png)
+![alt text](docs/imagens/telas/metas2.png)
+
+### Tela dos Relatórios
+![alt text](docs/imagens/telas/relatorios.png)
+
+### Tela de Hoje
+![alt text](docs/imagens/telas/hoje.png)
