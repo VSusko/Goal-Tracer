@@ -301,9 +301,13 @@ def gerar_dados_metas(usuario, nome_atividade=None, operacao=None):
     }
 
     # Caso uma atividade tenha sido passada, adiciona tambem os dados especificos da meta nova
-    if operacao == "adicionar" and nome_atividade is not None:
+    if operacao and nome_atividade is not None:
         context["horas_semana"] = novameta.horas_semana
         context["percentual"] = novameta.percentual
+        
+    # Nao utiliza a lista nova de atividades sem metas
+    if operacao == "atualizar":
+        del context["atividades"]
 
     # Caso nada tenha sido passado, é o retorno da view quando carrega a pagina, entao adiciona todas as metas
     if operacao == None:
@@ -325,7 +329,7 @@ def metas(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
-            
+
             # Se a operacao for de adição, obtem a atividade associada e cria uma nova meta. Retorna os dados para atualizar o front
             if data["operacao"] == "adicionar":
                 atividade = Atividade.objects.get(nome=data["nome_atividade"], usuario=request.user)
@@ -345,6 +349,22 @@ def metas(request):
                 return JsonResponse(context, status=200)
         
         # Caso houve alguma exception, retorna o erro para o front
+        except Exception as e:
+            print(f'erro? {e}')
+            return JsonResponse({"erro": str(e)}, status=400)
+    
+    # Se for atualizar uma meta
+    if request.method == "PUT":
+        data = json.loads(request.body)
+
+        try:
+            # Atualiza uma meta existente
+            meta = Meta.objects.get(atividade__nome=data["nome_atividade"], atividade__usuario=request.user)
+            meta.meta_horas = float(data["nova_meta"])
+            meta.save()
+            
+            context = gerar_dados_metas(request.user, data["nome_atividade"], operacao="atualizar")
+            return JsonResponse(context, status=200)
         except Exception as e:
             print(f'erro? {e}')
             return JsonResponse({"erro": str(e)}, status=400)

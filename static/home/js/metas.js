@@ -85,7 +85,8 @@ botaoAdicionar.addEventListener("click", async() => {
             <p class="mt-2 text-sm text-gray-500">${data.percentual}% concluído</p>
 
             <div class="flex mt-4">
-                <button id="botao_deletar_${nome_atividade}" type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
+                <button id="botao_editar_${nome_atividade}" type="submit" class="px-3 py-1 bg-yellow-500 text-white rounded">Editar</button>
+                <button id="botao_deletar_${nome_atividade}" type="submit" class="ml-auto px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
             </div>
         </div>
     `);
@@ -163,4 +164,97 @@ document.addEventListener("click", async (event) => {
             mensagem.innerHTML = `<p class="text-gray-500">Nenhuma meta planejada.</p>`;
             container.appendChild(mensagem);
         }
+});
+
+
+
+const popUpEdicao = document.getElementById("popUpEdicao");
+var nome_meta_editavel = "";
+var meta_editavel;
+
+// Botao editar atividade
+document.addEventListener("click", async (event) => {
+    const botao = event.target.closest("[id^='botao_editar_']");
+
+    if (!botao) return; // clique não foi num botão editar
+    
+    // Abre o pop-up de edição
+    popUpEdicao.classList.remove("hidden");
+    
+    // Obtendo o nome da atividade a ser editada
+    const atividade_nome = botao.id.split("_").pop();
+
+    // Colocando o nome azul da atividade a ser editada no pop-up
+    nome_meta_editavel = document.getElementById(`div_meta_${atividade_nome}`).querySelector("h4").textContent;
+    const nomeEditar = document.getElementById("nome_meta_editavel");
+    nomeEditar.textContent = nome_meta_editavel;
+
+    // Colocando a quantidade de horas da meta antiga no placeholder
+    meta_editavel = document.getElementById(`div_meta_${atividade_nome}`).dataset.metaHoras;
+    const metaEditar = document.getElementById("edicao_meta");
+    metaEditar.value = meta_editavel;
+    metaEditar.placeholder = meta_editavel;
+});
+
+
+// Fecha ao clicar em cancelar
+document.getElementById("botao_cancelar").addEventListener("click", () => {
+    popUpEdicao.classList.add("hidden");
+});
+
+
+// Ação do confirmar
+document.getElementById("botao_confirmar").addEventListener("click", async () => {
+    
+    const nova_meta = document.getElementById("edicao_meta").value;
+
+    console.log("Editar atividade :", nome_meta_editavel);
+    
+    const response = await fetch("/metas/", {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": window.csrftoken
+        },
+        body: JSON.stringify({
+            nome_atividade: nome_meta_editavel,
+            nova_meta: nova_meta
+        })
+    });
+
+    if (response.status != 200){
+        alert("Erro ao editar atividade. Tente novamente.");
+        return;
+    }
+
+    const data = await response.json();
+
+    // Atualizando o painel de metas atingidas
+    document.getElementById("metas_atingidas").textContent = data.metas_atingidas + "/" + data.total_metas;
+    document.getElementById("progresso_medio").textContent = data.progresso_medio + "%";
+    document.getElementById("status").textContent = data.status;
+
+    // Atualizando o card o html
+    document.getElementById(`div_meta_${nome_meta_editavel}`).innerHTML = `
+        <div class="flex justify-between mb-3">
+            <h4 class="font-semibold text-lg">${nome_meta_editavel}</h4>	
+            <div>${data.horas_semana}/${nova_meta}h</div>   
+        </div>
+
+        <div class="w-full bg-gray-200 h-2 rounded-full">
+            <div class="bg-blue-500 h-2 rounded-full w-[${data.percentual}%]"></div>
+        </div>
+
+        <p class="mt-2 text-sm text-gray-500">${data.percentual}% concluído</p>
+
+        <div class="flex mt-4">
+            <button id="botao_editar_${nome_meta_editavel}" type="submit" class="px-3 py-1 bg-yellow-500 text-white rounded">Editar</button>
+            <button id="botao_deletar_${nome_meta_editavel}" type="submit" class="ml-auto px-3 py-1 bg-red-500 text-white rounded">Deletar</button>
+        </div>
+    `;
+    
+    // Resetando o valor e o pop-up
+    const caixaEditar = document.getElementById("edicao_meta");
+    caixaEditar.value = "";
+    popUpEdicao.classList.add("hidden");
 });

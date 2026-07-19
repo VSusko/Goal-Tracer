@@ -75,7 +75,7 @@
 
         <div id="div_metas" class="p-10">
             {% for meta in metas %}
-                <div id="div_meta_{{ meta.atividade.nome }}" class="bg-white rounded-xl border border-gray-100 p-6 mt-4 shadow-lg">
+                <div id="div_meta_{{ meta.atividade.nome }}" data-meta-horas="{{ meta.meta_horas }}" class="bg-white rounded-xl border border-gray-100 p-6 mt-4 shadow-lg">
                     <div class="flex justify-between mb-3">
                         <h4 class="font-semibold text-lg">{{ meta.atividade.nome }}</h4>    
                         <div>{{ meta.horas_semana }}/{{ meta.meta_horas }}h</div>
@@ -95,8 +95,26 @@
             {% empty %}
                 <p class="text-gray-500">Nenhuma meta planejada.</p>
             {% endfor %}
-
         </div>
+
+    <!-- Pop-up de edição -->
+    <div id="popUpEdicao" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-xl p-8 w-[30vw]">
+            <div class="flex">
+                <h2 class="text-lg font-bold mb-4">Editar meta da atividade</h2>
+                <h2 id="nome_meta_editavel" class="text-lg font-bold text-blue-500 ml-2"></h2>
+            </div>
+            <div class="flex">
+                <h2 class="text-lg font-bold mb-4">Nova meta: </h2>
+                <input id="edicao_meta" type="number" step="0.5" min="0" max="24" class="border rounded ml-2 w-16 h-9 p-1">
+                <h2 class="text-lg mt-1 ml-1">h</h2>
+            </div>
+            <div class="flex gap-3 mt-4">
+                <button id="botao_cancelar" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg">Cancelar</button>
+                <button id="botao_confirmar" class="bg-blue-600 text-white px-4 py-2 rounded-lg ml-auto">Confirmar</button>
+            </div>
+        </div>
+    </div>
 
     <script src="{% static 'home/js/metas.js' %}"></script>
 
