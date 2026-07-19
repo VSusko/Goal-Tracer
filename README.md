@@ -53,6 +53,9 @@ O **Goal Tracer** é um sistema web de acompanhamento de rotina e metas pessoais
 
 🔗 [Ver quadro no GitHub Projects](https://github.com/users/VSusko/projects/1/views/1)
 
+## DER (Documento de Especificação de Requisitos):
+
+[Confira o relatório completo (PDF)](docs/relatorio.pdf)
 
 ## 🛠️ Tecnologias
 
